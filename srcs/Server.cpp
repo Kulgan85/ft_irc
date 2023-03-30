@@ -7,35 +7,71 @@ void	Server::_removeFromPoll(int pfds_index)
 	--this->_pfd_count;
 }
 
-int	Server::_addToPoll(int new_fd)
+void	Server::_addToPoll(int new_fd)
 {
-	if (this->_pfd_count == this->_max_pfd_count)
-		return (-1);
 	this->_pfds[this->_pfd_count].fd = new_fd;
 	this->_pfds[this->_pfd_count].events = POLLIN;
 	++this->_pfd_count;
-	return (0);
 }
 
-void	Server::_addClient(void)
+void	Server::_addClient(Client *new_client)
+{
+	this->_clients.insert(std::make_pair(new_client->getFd(), new_client));
+}
+
+void	Server::_removeClient(int client_fd)
+{
+	delete this->_clients[client_fd];
+	this->_clients.erase(client_fd);
+}
+
+void	Server::_newClient(void)
 {
 	struct sockaddr_storage	addr;
 	socklen_t				addr_len;
 	int						new_fd;
 
+	if (this->_pfd_count == this->_max_pfd_count)
+		return ;
 	addr_len = sizeof(addr);
 	new_fd = accept(this->_socket_fd, (struct sockaddr *)&addr, &addr_len);
 	if (new_fd == -1)
 		std::cerr << "Error: accept()\n";
 	else
 	{
-		if (Server::_addToPoll(new_fd) == -1)
-			return ;
+		Server::_addToPoll(new_fd);
+		Server::_addClient(new Client(new_fd));
 		if (send(new_fd, "Welcome to our IRC server\n", 26, MSG_DONTWAIT) == -1)
 			std::cerr << "Error: send()\n";
 		else
 		{
 			std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
+		}
+	}
+}
+
+void	Server::_useMessage(int sender_fd)
+{
+/* Do A bunch of parsing and the run the command or send the message
+	All content is currently a placeholder */
+	std::string message = this->_clients[sender_fd]->getMessage();
+	if (message.back() != '\n')
+		std::cerr << "Error: This message should not have been allowed through" << std::endl;
+	std::string ret = message;
+	if (message.compare(this->_password) == 0)
+	{
+		if (send(sender_fd, "Congratulations! You input the password!\n", 42, MSG_DONTWAIT) == -1)
+			std::cerr << "Error: send" << std::endl;
+	}
+	for (int i = 0; i < this->_pfd_count; i++)
+	{
+		if (this->_pfds[i].fd == sender_fd || this->_pfds[i].fd == this->_socket_fd)
+			continue ;
+		else
+		{
+			std::cout << "Sending to: " << this->_pfds[i].fd << std::endl;
+			if (send(this->_pfds[i].fd, ret.c_str(), ret.length(), MSG_DONTWAIT) == -1)
+				std::cerr << "Error: sending to " << this->_pfds[i].fd << std::endl;
 		}
 	}
 }
@@ -52,6 +88,7 @@ void	Server::_clientInput(int pfds_index)
 		std::cout << "Socket " << sender_fd << " hung up" << std::endl;
 		close(sender_fd);
 		Server::_removeFromPoll(pfds_index);
+		Server::_removeClient(sender_fd);
 	}
 	else if (byte_count < 0)
 	{
@@ -60,15 +97,11 @@ void	Server::_clientInput(int pfds_index)
 	else
 	{
 		std::string	message(buf, strlen(buf));
-		if (message.back() == '\n')
-			message.pop_back();
-		std::string	ret = "We have recieved your message! It was: ";
-		ret.append(message);
-		ret.push_back('\n');
-		if (message.compare(this->_password) == 0)
-			ret.append("Congratulations! You input the password!\n");
-		if (send(sender_fd, ret.c_str(), ret.length(), MSG_DONTWAIT) == -1)
-			std::cerr << "Error: send" << std::endl;
+		this->_clients[sender_fd]->addToMessage(message);
+		if (this->_clients[sender_fd]->getMessage().back() != '\n')
+			return ;
+		Server::_useMessage(sender_fd);
+		this->_clients[sender_fd]->clearMessage();
 	}
 }
 
@@ -125,6 +158,9 @@ Server::Server(std::string port, std::string password) : _port(port), _password(
 Server::~Server()
 {
 	delete [] this->_pfds;
+	for (std::map<int, Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
+		delete it->second;
+	this->_clients.clear();
 }
 
 void	Server::launch()
@@ -138,7 +174,7 @@ void	Server::launch()
 			if (this->_pfds[i].revents & POLLIN)
 			{
 				if (this->_pfds[i].fd == this->_socket_fd)
-					_addClient();
+					_newClient();
 				else
 					_clientInput(i);
 			}
