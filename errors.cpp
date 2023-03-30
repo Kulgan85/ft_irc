@@ -6,7 +6,7 @@
 /*   By: tbertozz <tbertozz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/30 13:24:57 by tbertozz          #+#    #+#             */
-/*   Updated: 2023/03/30 13:28:15 by tbertozz         ###   ########.fr       */
+/*   Updated: 2023/03/30 15:09:14 by tbertozz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,5 @@
 #define USERNOTFOUND -1
 
 #include "server.hpp"
-
-
 
 #endif
