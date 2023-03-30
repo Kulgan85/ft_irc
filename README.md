@@ -14,3 +14,5 @@ https://modern.ircdocs.horse/
 https://github.com/barimehdi77/ft_irc
 
 https://ircgod.com/
+
+https://www.alien.net.au/irc/irc2numerics.html
