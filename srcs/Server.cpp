@@ -50,6 +50,35 @@ void	Server::_newClient(void)
 	}
 }
 
+bool	Server::_isCommand(int sender_fd)
+{
+	std::string	message = this->_clients.at(sender_fd)->getMessage();
+	if (message.find_first_of(' ') != std::string::npos)
+	{
+		try
+		{
+			this->_commands.at(message.substr(0, message.find_first_of(' ')))(sender_fd);
+			return (true);
+		}
+		catch(const std::exception& e)
+		{
+			return (false);
+		}
+	}
+	else
+	{
+		try
+		{
+			this->_commands.at(message.substr(0, message.find_first_of('\n')))(sender_fd);
+			return (true);
+		}
+		catch(const std::exception& e)
+		{
+			return (false);
+		}
+	}
+}
+
 void	Server::_useMessage(int sender_fd)
 {
 /* Do A bunch of parsing and the run the command or send the message
@@ -57,21 +86,15 @@ void	Server::_useMessage(int sender_fd)
 	std::string message = this->_clients[sender_fd]->getMessage();
 	if (message.back() != '\n')
 		std::cerr << "Error: This message should not have been allowed through" << std::endl;
-	std::string ret = message;
-	if (message.compare(this->_password) == 0)
+
+	if (Server::_isCommand(sender_fd))
+		return ;
+	message.pop_back();
+	for (std::vector<std::string>::iterator it = this->_clients[sender_fd]->joined_channels.begin(); it != this->_clients[sender_fd]->joined_channels.end(); it++)
 	{
-		if (send(sender_fd, "Congratulations! You input the password!\n", 42, MSG_DONTWAIT) == -1)
-			std::cerr << "Error: send" << std::endl;
-	}
-	for (int i = 0; i < this->_pfd_count; i++)
-	{
-		if (this->_pfds[i].fd == sender_fd || this->_pfds[i].fd == this->_socket_fd)
-			continue ;
-		else
+		for (std::vector<int>::iterator v_it = this->_channels.at(*it).begin(); v_it != this->_channels.at(*it).end(); v_it++)
 		{
-			std::cout << "Sending to: " << this->_pfds[i].fd << std::endl;
-			if (send(this->_pfds[i].fd, ret.c_str(), ret.length(), MSG_DONTWAIT) == -1)
-				std::cerr << "Error: sending to " << this->_pfds[i].fd << std::endl;
+			send(*v_it, message.c_str(), message.size(), MSG_DONTWAIT);
 		}
 	}
 }

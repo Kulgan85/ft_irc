@@ -3,6 +3,7 @@
 
 # include <string>
 # include <map>
+# include <vector>
 # include <iostream>
 # include <poll.h>
 # include <sys/socket.h>
@@ -31,6 +32,7 @@ class Server
 		void	_removeFromPoll(int pfds_index);
 		void	_sendMessage(std::string message, int sender_fd);
 		void	_useMessage(int sender_fd);
+		bool	_isCommand(int sender_fd);
 
 		const std::string		_port;
 		const std::string		_password;
@@ -39,6 +41,8 @@ class Server
 		int						_pfd_count;
 		int						_max_pfd_count;
 		std::map<int, Client *>	_clients;
+		std::map<std::string, void (*)(int)>	_commands;
+		std::map<std::string, std::vector<int> >		_channels;
 	public:
 		Server(std::string port, std::string password);
 		~Server();
