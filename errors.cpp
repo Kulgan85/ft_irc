@@ -6,9 +6,11 @@
 /*   By: tbertozz <tbertozz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/30 13:24:57 by tbertozz          #+#    #+#             */
-/*   Updated: 2023/03/30 15:09:14 by tbertozz         ###   ########.fr       */
+/*   Updated: 2023/03/31 10:17:38 by tbertozz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "server.hpp"
 
 #ifndef errors_hpp
 #define errors_hpp
@@ -25,7 +27,5 @@
 #define BADCHANNELMASK 9
 #define USERNOTINCHANNEL -1
 #define USERNOTFOUND -1
-
-#include "server.hpp"
 
 #endif

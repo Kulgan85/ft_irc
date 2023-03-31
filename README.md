@@ -16,3 +16,5 @@ https://github.com/barimehdi77/ft_irc
 https://ircgod.com/
 
 https://www.alien.net.au/irc/irc2numerics.html
+
+https://github.com/Alexdelia/42-ft_irc/blob/main/src/cmd/Cmd.cpp
