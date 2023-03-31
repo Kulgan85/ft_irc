@@ -33,6 +33,7 @@ class Server
 		void	_sendMessage(std::string message, int sender_fd);
 		void	_useMessage(int sender_fd);
 		bool	_isCommand(int sender_fd);
+		std::vector<std::string>	_splitString(std::string str, char c);
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);
 		void	USER(const int &sender_fd);
@@ -49,7 +50,7 @@ class Server
 		int						_pfd_count;
 		int						_max_pfd_count;
 		std::map<int, Client *>	_clients;
-		std::map<std::string, void (*)(int)>	_commands;
+		std::map<std::string, void (Server::*)(const int &)>	_commands;
 		std::map<std::string, std::vector<int> >		_channels;
 
 	public:

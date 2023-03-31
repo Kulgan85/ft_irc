@@ -53,11 +53,12 @@ void	Server::_newClient(void)
 bool	Server::_isCommand(int sender_fd)
 {
 	std::string	message = this->_clients.at(sender_fd)->getMessage();
+	std::cout << "message is |" << message << "|\n";
 	if (message.find_first_of(' ') != std::string::npos)
 	{
 		try
 		{
-			this->_commands.at(message.substr(0, message.find_first_of(' ')))(sender_fd);
+			(this->*_commands.at(message.substr(0, message.find_first_of(' '))))(sender_fd);
 			return (true);
 		}
 		catch(const std::exception& e)
@@ -69,7 +70,7 @@ bool	Server::_isCommand(int sender_fd)
 	{
 		try
 		{
-			this->_commands.at(message.substr(0, message.find_first_of('\n')))(sender_fd);
+			(this->*_commands.at(message.substr(0, message.find_first_of('\n'))))(sender_fd);
 			return (true);
 		}
 		catch(const std::exception& e)
@@ -81,8 +82,6 @@ bool	Server::_isCommand(int sender_fd)
 
 void	Server::_useMessage(int sender_fd)
 {
-/* Do A bunch of parsing and the run the command or send the message
-	All content is currently a placeholder */
 	std::string message = this->_clients[sender_fd]->getMessage();
 	if (message.back() != '\n')
 		std::cerr << "Error: This message should not have been allowed through" << std::endl;
@@ -176,14 +175,14 @@ Server::Server(std::string port, std::string password) : _port(port), _password(
 	this->_pfds[0].fd = this->_socket_fd;
 	this->_pfds[0].events = POLLIN;
 	this->_pfd_count = 1;
-	this->_commands.insert(std::make_pair("PASS", &this->PASS));
-	this->_commands.insert(std::make_pair("NICK", &this->NICK));
-	this->_commands.insert(std::make_pair("USER", &this->USER));
-	this->_commands.insert(std::make_pair("PMSG", &this->PMSG));
-	this->_commands.insert(std::make_pair("JOIN", &this->JOIN));
-	this->_commands.insert(std::make_pair("LEAVE", &this->LEAVE));
-	this->_commands.insert(std::make_pair("OP", &this->OP));
-	this->_commands.insert(std::make_pair("LIST", &this->LIST));
+	this->_commands["PASS"] = &Server::PASS;
+	this->_commands["NICK"] = &Server::NICK;
+	this->_commands["USER"] = &Server::USER;
+	this->_commands["PMSG"] = &Server::PMSG;
+	this->_commands["JOIN"] = &Server::JOIN;
+	this->_commands["LEAVE"] = &Server::LEAVE;
+	this->_commands["LIST"] = &Server::LIST;
+	this->_commands["OP"] = &Server::OP;
 }
 
 Server::~Server()
