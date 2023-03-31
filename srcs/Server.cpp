@@ -176,6 +176,14 @@ Server::Server(std::string port, std::string password) : _port(port), _password(
 	this->_pfds[0].fd = this->_socket_fd;
 	this->_pfds[0].events = POLLIN;
 	this->_pfd_count = 1;
+	this->_commands.insert(std::make_pair("PASS", &this->PASS));
+	this->_commands.insert(std::make_pair("NICK", &this->NICK));
+	this->_commands.insert(std::make_pair("USER", &this->USER));
+	this->_commands.insert(std::make_pair("PMSG", &this->PMSG));
+	this->_commands.insert(std::make_pair("JOIN", &this->JOIN));
+	this->_commands.insert(std::make_pair("LEAVE", &this->LEAVE));
+	this->_commands.insert(std::make_pair("OP", &this->OP));
+	this->_commands.insert(std::make_pair("LIST", &this->LIST));
 }
 
 Server::~Server()

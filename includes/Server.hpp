@@ -33,6 +33,14 @@ class Server
 		void	_sendMessage(std::string message, int sender_fd);
 		void	_useMessage(int sender_fd);
 		bool	_isCommand(int sender_fd);
+		void	PASS(const int &sender_fd);
+		void	NICK(const int &sender_fd);
+		void	USER(const int &sender_fd);
+		void	PMSG(const int &sender_fd);
+		void	JOIN(const int &sender_fd);
+		void	LEAVE(const int &sender_fd);
+		void	OP(const int &sender_fd);
+		void	LIST(const int &sender_fd);
 
 		const std::string		_port;
 		const std::string		_password;
@@ -43,6 +51,7 @@ class Server
 		std::map<int, Client *>	_clients;
 		std::map<std::string, void (*)(int)>	_commands;
 		std::map<std::string, std::vector<int> >		_channels;
+
 	public:
 		Server(std::string port, std::string password);
 		~Server();

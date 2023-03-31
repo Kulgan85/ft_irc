@@ -1,6 +1,7 @@
 SRC_FILES		=	main.cpp \
 					Server.cpp \
-					Client.cpp
+					Client.cpp \
+					commands.cpp
 
 SRC_DIR			=	srcs/
 
