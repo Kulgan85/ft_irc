@@ -54,6 +54,8 @@ bool	Server::_isCommand(int sender_fd)
 {
 	std::string	message = this->_clients.at(sender_fd)->getMessage();
 	std::cout << "message is |" << message << "|\n";
+	if (message.find_first_of('\r') != std::string::npos)
+		message.erase(message.find_first_of('\r'), 1);
 	if (message.find_first_of(' ') != std::string::npos)
 	{
 		try
@@ -84,8 +86,9 @@ void	Server::_useMessage(int sender_fd)
 {
 	std::string message = this->_clients[sender_fd]->getMessage();
 	if (message.at(message.length() - 1) != '\n')
-		std::cerr << "Error: This message should not have been allowed through" << std::endl;
-
+		std::cerr << "Error: Missing newline" << std::endl;
+	if (message.at(message.length() - 2) != '\r')
+		std::cerr << "Error: Missing carriage return" << std::endl;
 	if (Server::_isCommand(sender_fd))
 		return ;
 	message.erase(message.length() - 1);
@@ -167,7 +170,7 @@ int	Server::_setSocket(std::string port)
 	return (socket_fd);
 }
 
-Server::Server(std::string port, std::string password) : _port(port), _password(password)
+Server::Server(std::string port, std::string password) : _name("ircserv"), _port(port), _password(password)
 {
 	this->_socket_fd = Server::_setSocket(this->_port);
 	this->_max_pfd_count = 20;

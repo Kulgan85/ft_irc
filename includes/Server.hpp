@@ -46,6 +46,7 @@ class Server
 		void	OP(const int &sender_fd);
 		void	LIST(const int &sender_fd);
 
+		const std::string		_name;
 		const std::string		_port;
 		const std::string		_password;
 		struct pollfd			*_pfds;

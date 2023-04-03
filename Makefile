@@ -24,7 +24,7 @@ CC				=	c++
 RM				=	rm -rf
 CXXFLAGS		=	-Wall -Wextra -Werror -std=c++98
 
-NAME			=	ft_irc
+NAME			=	ircserv
 
 all:			$(NAME)
 
