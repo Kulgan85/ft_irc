@@ -18,3 +18,9 @@ https://ircgod.com/
 https://www.alien.net.au/irc/irc2numerics.html
 
 https://github.com/Alexdelia/42-ft_irc/blob/main/src/cmd/Cmd.cpp
+
+https://www.rfc-editor.org/rfc/rfc2811
+
+https://www.rfc-editor.org/rfc/rfc2812
+
+https://www.rfc-editor.org/rfc/rfc2813
