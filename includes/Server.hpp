@@ -5,6 +5,8 @@
 # include <map>
 # include <vector>
 # include <iostream>
+# include <sstream>
+# include <cstring>
 # include <poll.h>
 # include <sys/socket.h>
 # include <sys/types.h>
@@ -33,7 +35,8 @@ class Server
 		void	_sendMessage(std::string message, int sender_fd);
 		void	_useMessage(int sender_fd);
 		bool	_isCommand(int sender_fd);
-		std::vector<std::string>	_splitString(std::string str, char c);
+
+		std::vector<std::string>	_splitString(std::string str, char delim);
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);
 		void	USER(const int &sender_fd);

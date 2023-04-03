@@ -83,12 +83,12 @@ bool	Server::_isCommand(int sender_fd)
 void	Server::_useMessage(int sender_fd)
 {
 	std::string message = this->_clients[sender_fd]->getMessage();
-	if (message.back() != '\n')
+	if (message.at(message.length() - 1) != '\n')
 		std::cerr << "Error: This message should not have been allowed through" << std::endl;
 
 	if (Server::_isCommand(sender_fd))
 		return ;
-	message.pop_back();
+	message.erase(message.length() - 1);
 	for (std::vector<std::string>::iterator it = this->_clients[sender_fd]->joined_channels.begin(); it != this->_clients[sender_fd]->joined_channels.end(); it++)
 	{
 		for (std::vector<int>::iterator v_it = this->_channels.at(*it).begin(); v_it != this->_channels.at(*it).end(); v_it++)
@@ -120,7 +120,7 @@ void	Server::_clientInput(int pfds_index)
 	{
 		std::string	message(buf, strlen(buf));
 		this->_clients[sender_fd]->addToMessage(message);
-		if (this->_clients[sender_fd]->getMessage().back() != '\n')
+		if (this->_clients[sender_fd]->getMessage().at(this->_clients[sender_fd]->getMessage().length() - 1) != '\n')
 			return ;
 		Server::_useMessage(sender_fd);
 		this->_clients[sender_fd]->clearMessage();
