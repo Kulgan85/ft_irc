@@ -1,4 +1,4 @@
-#include "sha1.hpp"
+#include "SHA1.hpp"
 #include <vector>
 
 #define LeftShift(bits,word) (((word) << (bits)) | ((word) >> (32-(bits)))) 

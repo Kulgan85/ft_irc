@@ -17,6 +17,7 @@
 # include <utility>
 # include "Client.hpp"
 # include "Exceptions.hpp"
+# include "SHA1.hpp"
 
 class Server
 {
@@ -48,7 +49,7 @@ class Server
 
 		const std::string		_name;
 		const std::string		_port;
-		const std::string		_password;
+		const std::bitset<160>	_password;
 		struct pollfd			*_pfds;
 		int						_socket_fd;
 		int						_pfd_count;

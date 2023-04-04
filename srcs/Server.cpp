@@ -170,7 +170,7 @@ int	Server::_setSocket(std::string port)
 	return (socket_fd);
 }
 
-Server::Server(std::string port, std::string password) : _name("ircserv"), _port(port), _password(password)
+Server::Server(std::string port, std::string password) : _name("ircserv"), _port(port), _password(SHA1Hash(password))
 {
 	this->_socket_fd = Server::_setSocket(this->_port);
 	this->_max_pfd_count = 20;
