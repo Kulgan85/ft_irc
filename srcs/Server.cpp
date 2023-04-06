@@ -33,7 +33,8 @@ void	Server::_addClient(Client *new_client)
 
 void	Server::_removeClient(int client_fd)
 {
-	this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[client_fd]->getNickname()));
+	if (find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[client_fd]->getNickname()) != this->_nicknames.end())
+		this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[client_fd]->getNickname()));
 	delete this->_clients[client_fd];
 	this->_clients.erase(client_fd);
 }
@@ -66,6 +67,8 @@ void	Server::_runCommands(int sender_fd)
 	while (messages.size() > 0)
 	{
 		std::cout << "message is |" << messages[0] << "|\n";
+		this->_clients[sender_fd]->clearMessage();
+		this->_clients[sender_fd]->addToMessage(messages[0]);
 		if (messages[0].find_first_of('\r') != std::string::npos)
 			messages[0].erase(messages[0].find_first_of('\r'), 1);
 		if (messages[0].find_first_of(' ') != std::string::npos)
