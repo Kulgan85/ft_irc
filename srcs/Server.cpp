@@ -129,7 +129,11 @@ void	Server::_sendWelcome(int sender_fd)
 {
 	std::string	to_send;
 
-	to_send = "Welcome to the Internet Relay Network ";
+	to_send = ":";
+	to_send.append(this->_name);
+	to_send.append(" 001 ");
+	to_send.append(this->_clients[sender_fd]->getNickname());
+	to_send.append(" :Welcome to the Internet Relay Network ");
 	to_send.append(this->_clients[sender_fd]->getNickname());
 	to_send.push_back('!');
 	to_send.append(this->_clients[sender_fd]->getUsername());
@@ -139,17 +143,29 @@ void	Server::_sendWelcome(int sender_fd)
 	to_send.push_back('\n');
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 	to_send.clear();
-	to_send = "Your host is ";
+	to_send = ":";
+	to_send.append(this->_name);
+	to_send.append(" 002 ");
+	to_send.append(this->_clients[sender_fd]->getNickname());
+	to_send.append("Your host is ");
 	to_send.append(this->_name);
 	to_send.append(", running version 1\r\n");
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 	to_send.clear();
-	to_send = "This server was created ";
+	to_send = ":";
+	to_send.append(this->_name);
+	to_send.append(" 003 ");
+	to_send.append(this->_clients[sender_fd]->getNickname());
+	to_send.append("This server was created ");
 	to_send.append(this->_start_time);
 	to_send.push_back('\r');
 	to_send.push_back('\n');
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 	to_send.clear();
+	to_send = ":";
+	to_send.append(this->_name);
+	to_send.append(" 004 ");
+	to_send.append(this->_clients[sender_fd]->getNickname());
 	to_send = this->_name;
 	to_send.append(" 1 \r\n");
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
