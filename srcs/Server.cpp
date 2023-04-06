@@ -47,6 +47,8 @@ void	Server::_newClient(void)
 		{
 			std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
 		}
+		this->_clients[new_fd]->setIPAddress(inet_ntoa((((struct sockaddr_in*)&addr)->sin_addr)));
+		send(new_fd, "*Welcome to ircserv. You must input a password before setting your username and nickname*\r\n", 92, MSG_DONTWAIT);
 	}
 }
 
@@ -82,6 +84,28 @@ bool	Server::_isCommand(int sender_fd)
 	}
 }
 
+bool	Server::_isValidChar(char c)
+{
+	if (c == '\0' || c == '\r' || c == '\n' || c == ':' || c == ' ')
+		return (false);
+	return (true);
+}
+
+bool	Server::_isValidNick(std::string str)
+{
+	if (str.size() > 9)
+		return (false);
+	for (std::string::size_type i = 0; i < str.size(); i++)
+	{
+		if (isalnum(str[i]))
+			continue ;
+		if (str[i] == '-' || str[i] == '_')
+			continue ;
+		return (false);
+	}
+	return (true);
+}
+
 void	Server::_useMessage(int sender_fd)
 {
 	std::string message = this->_clients[sender_fd]->getMessage();
@@ -99,6 +123,36 @@ void	Server::_useMessage(int sender_fd)
 			send(*v_it, message.c_str(), message.size(), MSG_DONTWAIT);
 		}
 	}
+}
+
+void	Server::_sendWelcome(int sender_fd)
+{
+	std::string	to_send;
+
+	to_send = "Welcome to the Internet Relay Network ";
+	to_send.append(this->_clients[sender_fd]->getNickname());
+	to_send.push_back('!');
+	to_send.append(this->_clients[sender_fd]->getUsername());
+	to_send.push_back('@');
+	to_send.append(this->_clients[sender_fd]->getIPAddress());
+	to_send.push_back('\r');
+	to_send.push_back('\n');
+	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+	to_send.clear();
+	to_send = "Your host is ";
+	to_send.append(this->_name);
+	to_send.append(", running version 1\r\n");
+	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+	to_send.clear();
+	to_send = "This server was created ";
+	to_send.append(this->_start_time);
+	to_send.push_back('\r');
+	to_send.push_back('\n');
+	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+	to_send.clear();
+	to_send = this->_name;
+	to_send.append(" 1 \r\n");
+	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 }
 
 void	Server::_clientInput(int pfds_index)
@@ -125,7 +179,8 @@ void	Server::_clientInput(int pfds_index)
 		this->_clients[sender_fd]->addToMessage(message);
 		if (this->_clients[sender_fd]->getMessage().at(this->_clients[sender_fd]->getMessage().length() - 1) != '\n')
 			return ;
-		Server::_useMessage(sender_fd);
+		if (!(message.compare("\r\n") == 0 || message.compare("\n") == 0))
+			Server::_useMessage(sender_fd);
 		this->_clients[sender_fd]->clearMessage();
 	}
 }
@@ -172,6 +227,9 @@ int	Server::_setSocket(std::string port)
 
 Server::Server(std::string port, std::string password) : _name("ircserv"), _port(port), _password(SHA1Hash(password))
 {
+	time_t	rawtime;
+	time(&rawtime);
+	this->_start_time = asctime(localtime(&rawtime));
 	this->_socket_fd = Server::_setSocket(this->_port);
 	this->_max_pfd_count = 20;
 	this->_pfds = new struct pollfd[this->_max_pfd_count];
