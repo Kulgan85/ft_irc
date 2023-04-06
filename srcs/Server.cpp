@@ -147,7 +147,7 @@ void	Server::_sendWelcome(int sender_fd)
 	to_send.append(this->_name);
 	to_send.append(" 002 ");
 	to_send.append(this->_clients[sender_fd]->getNickname());
-	to_send.append("Your host is ");
+	to_send.append(" :Your host is ");
 	to_send.append(this->_name);
 	to_send.append(", running version 1\r\n");
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
@@ -156,7 +156,7 @@ void	Server::_sendWelcome(int sender_fd)
 	to_send.append(this->_name);
 	to_send.append(" 003 ");
 	to_send.append(this->_clients[sender_fd]->getNickname());
-	to_send.append("This server was created ");
+	to_send.append(" :This server was created ");
 	to_send.append(this->_start_time);
 	to_send.push_back('\r');
 	to_send.push_back('\n');
@@ -166,7 +166,8 @@ void	Server::_sendWelcome(int sender_fd)
 	to_send.append(this->_name);
 	to_send.append(" 004 ");
 	to_send.append(this->_clients[sender_fd]->getNickname());
-	to_send = this->_name;
+	to_send.append(" :");
+	to_send.append(this->_name);
 	to_send.append(" 1 \r\n");
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 }
@@ -246,6 +247,7 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	time_t	rawtime;
 	time(&rawtime);
 	this->_start_time = asctime(localtime(&rawtime));
+	this->_start_time.erase(this->_start_time.end() - 1);
 	this->_socket_fd = Server::_setSocket(this->_port);
 	this->_max_pfd_count = 20;
 	this->_pfds = new struct pollfd[this->_max_pfd_count];

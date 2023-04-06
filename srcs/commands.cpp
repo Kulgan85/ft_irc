@@ -29,9 +29,14 @@ std::vector<std::string> Server::_splitString(std::string str)
 			{
 				if (!(Server::_isValidChar(str[i])))
 				{
-					std::cout << "the thing is |" << str[i] << "|\n"; 
-					tokens.clear();
-					return (tokens);
+					if (i == 0 && str[i] == '*' && tokens.size() == 2 && tokens[0].compare("USER") == 0)
+						;
+					else
+					{
+						std::cout << "the thing is |" << str[i] << "|\n"; 
+						tokens.clear();
+						return (tokens);
+					}
 				}
 				buf.push_back(str[i]);
 				++i;
