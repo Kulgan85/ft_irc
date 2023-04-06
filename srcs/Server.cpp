@@ -1,5 +1,17 @@
 #include "Server.hpp"
 
+std::vector<std::string>	Server::_splitMessages(std::string message)
+{
+	std::vector<std::string>	ret;
+
+	while (message.find('\n') != std::string::npos)
+	{
+		ret.push_back(message.substr(0, message.find('\n') + 1));
+		message.erase(0, message.find('\n') + 1);
+	}
+	return (ret);
+}
+
 void	Server::_removeFromPoll(int pfds_index)
 {
 	close(this->_pfds[pfds_index].fd);
@@ -21,6 +33,7 @@ void	Server::_addClient(Client *new_client)
 
 void	Server::_removeClient(int client_fd)
 {
+	this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[client_fd]->getNickname()));
 	delete this->_clients[client_fd];
 	this->_clients.erase(client_fd);
 }
@@ -41,46 +54,41 @@ void	Server::_newClient(void)
 	{
 		Server::_addToPoll(new_fd);
 		Server::_addClient(new Client(new_fd));
-		if (send(new_fd, "Welcome to our IRC server\n", 26, MSG_DONTWAIT) == -1)
-			std::cerr << "Error: send()\n";
-		else
-		{
-			std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
-		}
+		std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
 		this->_clients[new_fd]->setIPAddress(inet_ntoa((((struct sockaddr_in*)&addr)->sin_addr)));
 		send(new_fd, "*Welcome to ircserv. You must input a password before setting your username and nickname*\r\n", 92, MSG_DONTWAIT);
 	}
 }
 
-bool	Server::_isCommand(int sender_fd)
+void	Server::_runCommands(int sender_fd)
 {
-	std::string	message = this->_clients.at(sender_fd)->getMessage();
-	std::cout << "message is |" << message << "|\n";
-	if (message.find_first_of('\r') != std::string::npos)
-		message.erase(message.find_first_of('\r'), 1);
-	if (message.find_first_of(' ') != std::string::npos)
+	std::vector<std::string>	messages = Server::_splitMessages(this->_clients.at(sender_fd)->getMessage());
+	while (messages.size() > 0)
 	{
-		try
+		std::cout << "message is |" << messages[0] << "|\n";
+		if (messages[0].find_first_of('\r') != std::string::npos)
+			messages[0].erase(messages[0].find_first_of('\r'), 1);
+		if (messages[0].find_first_of(' ') != std::string::npos)
 		{
-			(this->*_commands.at(message.substr(0, message.find_first_of(' '))))(sender_fd);
-			return (true);
+			try
+			{
+				(this->*_commands.at(messages[0].substr(0, messages[0].find_first_of(' '))))(sender_fd);
+			}
+			catch(const std::exception& e)
+			{
+			}
 		}
-		catch(const std::exception& e)
+		else
 		{
-			return (false);
+			try
+			{
+				(this->*_commands.at(messages[0].substr(0, messages[0].find_first_of('\n'))))(sender_fd);
+			}
+			catch(const std::exception& e)
+			{
+			}
 		}
-	}
-	else
-	{
-		try
-		{
-			(this->*_commands.at(message.substr(0, message.find_first_of('\n'))))(sender_fd);
-			return (true);
-		}
-		catch(const std::exception& e)
-		{
-			return (false);
-		}
+		messages.erase(messages.begin());
 	}
 }
 
@@ -113,16 +121,15 @@ void	Server::_useMessage(int sender_fd)
 		std::cerr << "Error: Missing newline" << std::endl;
 	if (message.at(message.length() - 2) != '\r')
 		std::cerr << "Error: Missing carriage return" << std::endl;
-	if (Server::_isCommand(sender_fd))
-		return ;
-	message.erase(message.length() - 1);
+	Server::_runCommands(sender_fd);
+/*	message.erase(message.length() - 1);
 	for (std::vector<std::string>::iterator it = this->_clients[sender_fd]->joined_channels.begin(); it != this->_clients[sender_fd]->joined_channels.end(); it++)
 	{
 		for (std::vector<int>::iterator v_it = this->_channels.at(*it).begin(); v_it != this->_channels.at(*it).end(); v_it++)
 		{
 			send(*v_it, message.c_str(), message.size(), MSG_DONTWAIT);
 		}
-	}
+	}*/
 }
 
 void	Server::_sendWelcome(int sender_fd)

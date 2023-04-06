@@ -39,11 +39,13 @@ class Server
 		void	_sendMessage(std::string message, int sender_fd);
 		void	_useMessage(int sender_fd);
 		void	_sendWelcome(int sender_fd);
-		bool	_isCommand(int sender_fd);
+		void	_runCommands(int sender_fd);
 		bool	_isValidChar(char c);
 		bool	_isValidNick(std::string str);
 
 		std::vector<std::string>	_splitString(std::string str);
+		std::vector<std::string>	_splitMessages(std::string message);
+
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);
 		void	USER(const int &sender_fd);
