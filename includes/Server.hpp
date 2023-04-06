@@ -4,6 +4,7 @@
 # include <string>
 # include <map>
 # include <vector>
+# include <deque>
 # include <algorithm>
 # include <iostream>
 # include <sstream>
@@ -44,7 +45,7 @@ class Server
 		bool	_isValidNick(std::string str);
 
 		std::vector<std::string>	_splitString(std::string str);
-		std::vector<std::string>	_splitMessages(std::string message);
+		std::deque<std::string>		_splitMessages(std::string message);
 
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);

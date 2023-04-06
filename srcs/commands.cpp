@@ -33,7 +33,7 @@ std::vector<std::string> Server::_splitString(std::string str)
 						;
 					else
 					{
-						std::cout << "the thing is |" << str[i] << "|\n"; 
+						std::cout << "the thing is |" << (int)str[i] << "|\n"; 
 						tokens.clear();
 						return (tokens);
 					}
