@@ -17,7 +17,7 @@ class	Client
 		std::string	_ip_address;
 		bool		_is_operator;
 		bool		_is_verified;
-		bool		_is_named;
+		bool		_is_registered;
 		int			_fd;
 
 	public:
@@ -30,7 +30,7 @@ class	Client
 		void	setNickname(std::string nickname);
 		void	setIsOperator(bool is_operator);
 		void	setIsVerified(bool is_verified);
-		void	setIsNamed(bool is_named);
+		void	setIsRegistered(bool is_verified);
 		void	setIPAddress(std::string ip_address);
 		void	addToMessage(std::string to_add);
 		void	clearMessage(void);
@@ -38,7 +38,7 @@ class	Client
 		const std::string	&getNickname(void) const;
 		const bool			&getIsOperator(void) const;
 		const bool			&getIsVerified(void) const;
-		const bool			&getIsNamed(void) const;
+		const bool			&getIsRegistered(void) const;
 		const std::string	&getIPAddress(void) const;
 		const int			&getFd(void) const;
 		std::string			getMessage(void);

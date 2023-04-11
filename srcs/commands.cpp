@@ -38,7 +38,7 @@ std::vector<std::string> Server::_splitString(std::string str)
 						;
 					else
 					{
-						std::cout << "the thing is |" << (int)str[i] << "|\n"; 
+						std::cout << "Invalid character is |" << (int)str[i] << "|\n"; 
 						tokens.clear();
 						return (tokens);
 					}
@@ -64,10 +64,11 @@ void	Server::PASS(const int &sender_fd)
 	{
 		to_send = ":ircserv 462 ";
 		to_send.append(this->_clients[sender_fd]->getNickname());
-		to_send.append(" :Unauthorized command (already registered)\r\n");
+		to_send.append(" :Unauthorized command (already input the password)\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
 	}
-	else if (args.size() < 2)
+	if (args.size() < 2)
 	{
 		to_send = ":ircserv 461 ";
 		to_send.append(this->_clients[sender_fd]->getNickname());
@@ -75,39 +76,106 @@ void	Server::PASS(const int &sender_fd)
 		to_send.append(args[0]);
 		to_send.append(" :Not enough parameters\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	if (this->_password == SHA1Hash(args[1]))
+	{
+		this->_clients[sender_fd]->setIsVerified(true);
+		to_send = ":ircserv 300 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :That was the correct password, you are now verified\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
 	}
 	else
 	{
-		if (this->_password == SHA1Hash(args[1]))
-		{
-			this->_clients[sender_fd]->setIsVerified(true);
-			to_send = ":That was the correct password, you are now verified\n";
-			send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
-		}
-		else
-		{
-			to_send = ":Incorrect password\n";
-			send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
-		}
-		
+		to_send = ":ircserv 464 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :Incorrect password\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
 	}
-	
 }
 
 void	Server::PMSG(const int &sender_fd) {(void)sender_fd;}
 
 void	Server::LEAVE(const int &sender_fd) {(void)sender_fd;}
 
-void	Server::OP(const int &sender_fd) {(void)sender_fd;}
-
-void	Server::NICK(const int &sender_fd)
+void	Server::OPER(const int &sender_fd)
 {
-	if (this->_clients[sender_fd]->getIsVerified() == false)
+	std::string	to_send;
+	if (this->_clients[sender_fd]->getIsRegistered() == false)
+	{
+		to_send = ":ircserv 451 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You have not registered\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
+	}
+	if (this->_clients[sender_fd]->getIsOperator() == true)
+	{
+		to_send = ":ircserv 300 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You are already an operator\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
 	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
 	if (args.empty() == true)
 		return ;
+	if (args.size() < 3)
+	{
+		to_send = ":ircserv 461 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" ");
+		to_send.append(args[0]);
+		to_send.append(" :Not enough parameters\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	if (args[1] != this->_clients[sender_fd]->getNickname())
+		return ;
+	if (args[2] == this->_oper_password)
+	{
+		this->_clients[sender_fd]->setIsOperator(true);
+		to_send = ":ircserv 381 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You are now an IRC operator\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		to_send.clear();
+		to_send = ":ircserv 221 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" +");
+		if (this->_clients[sender_fd]->getIsOperator() == true)
+			to_send.push_back('o');
+		to_send.append("\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	else
+	{
+		to_send = ":ircserv 464 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :Password incorrect\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+}
+
+void	Server::NICK(const int &sender_fd)
+{
 	std::string	to_send;
+	if (this->_clients[sender_fd]->getIsVerified() == false)
+	{
+		to_send = ":ircserv 451 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You have not input the password\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	if (args.empty() == true)
+		return ;
 	if (args.size() < 2)
 	{
 		to_send = ":ircserv 431 ";
@@ -138,28 +206,23 @@ void	Server::NICK(const int &sender_fd)
 	}
 	this->_clients[sender_fd]->setNickname(args[1]);
 	this->_nicknames.push_back(args[1]);
-	if (this->_clients[sender_fd]->getUsername().size() > 0 && this->_clients[sender_fd]->getIsNamed() == false)
+	if (find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[sender_fd]->getNickname()) != this->_nicknames.end())
+		this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[sender_fd]->getNickname()));
+	if (this->_clients[sender_fd]->getUsername().size() > 0 && this->_clients[sender_fd]->getIsRegistered() == false)
 	{
-		this->_clients[sender_fd]->setIsNamed(true);
+		this->_clients[sender_fd]->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
 }
 
 void	Server::USER(const int &sender_fd)
 {
-	if (this->_clients[sender_fd]->getIsVerified() == false)
-		return ;
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
-	if (args.empty() == true)
-		return ;
 	std::string	to_send;
-	if (args.size() < 2)
+	if (this->_clients[sender_fd]->getIsVerified() == false)
 	{
-		to_send = ":ircserv 461 ";
+		to_send = ":ircserv 451 ";
 		to_send.append(this->_clients[sender_fd]->getNickname());
-		to_send.append(" ");
-		to_send.append(args[0]);
-		to_send.append(" :Not enough parameters\r\n");
+		to_send.append(" :You have not input the password\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
@@ -171,11 +234,64 @@ void	Server::USER(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	this->_clients[sender_fd]->setUsername(args[1]);
-	if (this->_clients[sender_fd]->getNickname().compare("*") != 0 && this->_clients[sender_fd]->getIsNamed() == false)
+	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	if (args.empty() == true)
+		return ;
+	if (args.size() < 4)
 	{
-		this->_clients[sender_fd]->setIsNamed(true);
+		to_send = ":ircserv 461 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" ");
+		to_send.append(args[0]);
+		to_send.append(" :Not enough parameters\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	this->_clients[sender_fd]->setUsername(args[1]);
+	if (this->_clients[sender_fd]->getNickname().compare("*") != 0 && this->_clients[sender_fd]->getIsRegistered() == false)
+	{
+		this->_clients[sender_fd]->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
+	}
+}
+
+void	Server::QUIT(const int &sender_fd)
+{
+	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::string	quit_message = ":";
+	quit_message.append(this->_clients[sender_fd]->getNickname());
+	quit_message.push_back('!');
+	quit_message.append(this->_clients[sender_fd]->getUsername());
+	quit_message.push_back('@');
+	quit_message.append(this->_name);
+	quit_message.push_back(' ');
+	quit_message.append(args[0]);
+	if (args.size() > 1)
+	{
+		quit_message.append(" :");
+		quit_message.append(args[1]);
+	}
+	quit_message.append("\r\n");
+	std::string	error_message = "ERROR :";
+	error_message.append(this->_name);
+	error_message.append(" you issued a QUIT command\r\n");
+	send(sender_fd, error_message.c_str(), error_message.size(), MSG_DONTWAIT);
+
+	int	pfds_index = this->_pfd_count - 1;
+
+	while (this->_pfds[pfds_index].fd != sender_fd && pfds_index >= 0)
+		--pfds_index;
+	if (pfds_index < 0)
+	{
+		std::cout << "ERROR: Something is very wrong" << std::endl;
+	}
+	close(sender_fd);
+	Server::_removeFromPoll(pfds_index);
+	Server::_removeClient(sender_fd);
+	std::cout << "Socket " << sender_fd << " hung up" << std::endl;
+	for (std::map<int, Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
+	{
+		send(it->second->getFd(), quit_message.c_str(), quit_message.size(), MSG_DONTWAIT);
 	}
 }
 

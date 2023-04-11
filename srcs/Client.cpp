@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int fd) : _message(""), _nickname("*"), _username(""), _ip_address(""), _is_operator(false), _is_verified(false), _is_named(false), _fd(fd) {}
+Client::Client(int fd) : _message(""), _nickname("*"), _username(""), _ip_address(""), _is_operator(false), _is_verified(false), _is_registered(false), _fd(fd) {}
 
 Client::~Client() {}
 
@@ -19,9 +19,9 @@ void	Client::setIsVerified(bool is_verified)
 	this->_is_verified = is_verified;
 }
 
-void	Client::setIsNamed(bool is_named)
+void	Client::setIsRegistered(bool is_registered)
 {
-	this->_is_named = is_named;
+	this->_is_registered = is_registered;
 }
 
 void	Client::setIPAddress(std::string ip_address)
@@ -54,9 +54,9 @@ const bool			&Client::getIsVerified(void) const
 	return (this->_is_verified);
 }
 
-const bool			&Client::getIsNamed(void) const
+const bool			&Client::getIsRegistered(void) const
 {
-	return (this->_is_named);
+	return (this->_is_registered);
 }
 
 const std::string	&Client::getIPAddress(void) const

@@ -79,6 +79,12 @@ void	Server::_runCommands(int sender_fd)
 			}
 			catch(const std::exception& e)
 			{
+				std::string	to_send = ":ircserv 421 ";
+				to_send.append(this->_clients[sender_fd]->getNickname());
+				to_send.push_back(' ');
+				to_send.append(messages[0].substr(0, messages[0].find_first_of(' ')));
+				to_send.append(" :Unknown command\r\n");
+				send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 			}
 		}
 		else
@@ -89,6 +95,12 @@ void	Server::_runCommands(int sender_fd)
 			}
 			catch(const std::exception& e)
 			{
+				std::string	to_send = ":ircserv 421 ";
+				to_send.append(this->_clients[sender_fd]->getNickname());
+				to_send.push_back(' ');
+				to_send.append(messages[0].substr(0, messages[0].find_first_of('\n')));
+				to_send.append(" :Unknown command\r\n");
+				send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 			}
 		}
 		messages.pop_front();
@@ -192,7 +204,6 @@ void	Server::_clientInput(int pfds_index)
 	if (byte_count == 0)
 	{
 		std::cout << "Socket " << sender_fd << " hung up" << std::endl;
-		close(sender_fd);
 		Server::_removeFromPoll(pfds_index);
 		Server::_removeClient(sender_fd);
 	}
@@ -208,7 +219,12 @@ void	Server::_clientInput(int pfds_index)
 			return ;
 		if (!(message.compare("\r\n") == 0 || message.compare("\n") == 0))
 			Server::_useMessage(sender_fd);
-		this->_clients[sender_fd]->clearMessage();
+		try
+		{
+			this->_clients.at(sender_fd)->clearMessage();
+		}
+		catch (const std::exception &e)
+		{}
 	}
 }
 
@@ -252,7 +268,7 @@ int	Server::_setSocket(std::string port)
 	return (socket_fd);
 }
 
-Server::Server(std::string port, std::string password) : _name("ircserv"), _port(port), _password(SHA1Hash(password))
+Server::Server(std::string port, std::string password) : _name("ircserv"), _port(port), _password(SHA1Hash(password)), _oper_password("password")
 {
 	time_t	rawtime;
 	time(&rawtime);
@@ -271,7 +287,8 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_commands["JOIN"] = &Server::JOIN;
 	this->_commands["LEAVE"] = &Server::LEAVE;
 	this->_commands["LIST"] = &Server::LIST;
-	this->_commands["OP"] = &Server::OP;
+	this->_commands["OPER"] = &Server::OPER;
+	this->_commands["QUIT"] = &Server::QUIT;
 }
 
 Server::~Server()
