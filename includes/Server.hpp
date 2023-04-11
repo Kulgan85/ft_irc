@@ -53,12 +53,14 @@ class Server
 		void	PMSG(const int &sender_fd);
 		void	JOIN(const int &sender_fd);
 		void	LEAVE(const int &sender_fd);
-		void	OP(const int &sender_fd);
+		void	OPER(const int &sender_fd);
+		void	QUIT(const int &sender_fd);
 		void	LIST(const int &sender_fd);
 
 		const std::string		_name;
 		const std::string		_port;
 		const std::bitset<160>	_password;
+		const std::string		_oper_password;
 		std::string				_start_time;
 		struct pollfd			*_pfds;
 		int						_socket_fd;
