@@ -9,6 +9,8 @@ https://github.com/BZ90
 
 # Resources:
 
+https://weechat.org/download/
+
 https://modern.ircdocs.horse/
 
 https://github.com/barimehdi77/ft_irc
