@@ -290,6 +290,8 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_commands["LIST"] = &Server::LIST;
 	this->_commands["OPER"] = &Server::OPER;
 	this->_commands["QUIT"] = &Server::QUIT;
+	this->_commands["PING"] = &Server::PING;
+	this->_commands["PONG"] = &Server::PONG;
 }
 
 Server::~Server()

@@ -3,7 +3,8 @@ SRC_FILES		=	main.cpp \
 					Client.cpp \
 					commands.cpp \
 					PrivMsg.cpp \
-					SHA1.cpp
+					SHA1.cpp \
+					PingPong.cpp
 
 SRC_DIR			=	srcs/
 

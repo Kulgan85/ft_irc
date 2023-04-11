@@ -57,6 +57,8 @@ class Server
 		void	OPER(const int &sender_fd);
 		void	QUIT(const int &sender_fd);
 		void	LIST(const int &sender_fd);
+		void	PING(const int &sender_fd);
+		void	PONG(const int &sender_fd);
 
 		const std::string		_name;
 		const std::string		_port;
