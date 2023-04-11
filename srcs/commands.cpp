@@ -308,4 +308,56 @@ void	Server::QUIT(const int &sender_fd)
 	}
 }
 
+void	Server::KILL(const int &sender_fd)
+{
+	std::string	to_send;
+	if (this->_clients[sender_fd]->getIsOperator() == false)
+	{
+		to_send = ":ircserv 481 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :Permission Denied- You're not an IRC operator\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	if (args.size() < 3)
+	{
+		to_send = ":ircserv 461 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.push_back(' ');
+		to_send.append(args[0]);
+		to_send.append(" :Not enough parameters\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	for (std::map<int, Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
+	{
+		if (it->second->getNickname() == args[1])
+		{
+			std::string	kill_message = ":";
+			kill_message.append(this->_name);
+			kill_message.append(" KILL ");
+			kill_message.append(args[1]);
+			kill_message.append(" :");
+			kill_message.append(args[2]);
+			for (std::map<int, Client *>::iterator it2 = this->_clients.begin(); it2 != this->_clients.end(); it2++)
+				send(it2->first, kill_message.c_str(), kill_message.size(), MSG_DONTWAIT);
+
+			int	pfds_index = this->_pfd_count - 1;
+			while (this->_pfds[pfds_index].fd != it->first && pfds_index >= 0)
+				--pfds_index;
+			close(it->first);
+			Server::_removeFromPoll(pfds_index);
+			Server::_removeClient(it->first);
+			return ;
+		}
+	}
+	to_send = ":ircserv 401 ";
+	to_send.append(this->_clients[sender_fd]->getNickname());
+	to_send.push_back(' ');
+	to_send.append(args[1]);
+	to_send.append(" :No such nick\r\n");
+	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+}
+
 void	Server::LIST(const int &sender_fd) {(void)sender_fd;}
