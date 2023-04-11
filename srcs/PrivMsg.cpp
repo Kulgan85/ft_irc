@@ -15,10 +15,16 @@ static std::vector<std::string>	getTargets(std::string commaList)
 	return output;
 }
 
-void	Server::PMSG(const int &sender_fd)
+void	Server::NOTICE(const int &sender_fd)
 {
 	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
 	std::vector<std::string>	targets = getTargets(args[1]);
+	Client*	c = _clients.find(sender_fd)->second;
+
+	if (!c->getIsRegistered())
+	{
+		return;
+	}
 
 	for (int i = 0; i < targets.size(); i++)
 	{
@@ -34,7 +40,49 @@ void	Server::PMSG(const int &sender_fd)
 				if ((*it).second->getNickname() == targets[i])
 				{
 					std::string toSend = ":";
-					toSend.append(_clients.find(sender_fd)->second->getNickname());
+					toSend.append(c->getNickname());
+					toSend.append(" NOTICE ");
+					toSend.append((*it).second->getNickname());
+					toSend.append(args[2]);
+					toSend.append("\r\n");
+					send((*it).second->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void	Server::PMSG(const int &sender_fd)
+{
+	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	targets = getTargets(args[1]);
+	Client*	c = _clients.find(sender_fd)->second;
+
+	if (!c->getIsRegistered())
+	{
+		std::string toSend = ":ircserv 451 ";
+		toSend.append(c->getNickname());
+		toSend.append(" :You have not registered\r\n");
+		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return;
+	}
+
+	for (int i = 0; i < targets.size(); i++)
+	{
+		if (targets[i][0] == '#' || targets[i][0] == '&')
+		{
+			// TODO: Channel
+		}
+		else
+		{
+			std::map<int, Client*>::iterator it;
+			for (it = _clients.begin(); it != _clients.end(); it++)
+			{
+				if ((*it).second->getNickname() == targets[i])
+				{
+					std::string toSend = ":";
+					toSend.append(c->getNickname());
 					toSend.append(" PRIVMSG ");
 					toSend.append((*it).second->getNickname());
 					toSend.append(args[2]);

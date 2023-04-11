@@ -51,6 +51,7 @@ class Server
 		void	NICK(const int &sender_fd);
 		void	USER(const int &sender_fd);
 		void	PMSG(const int &sender_fd);
+		void	NOTICE(const int &sender_fd);
 		void	JOIN(const int &sender_fd);
 		void	LEAVE(const int &sender_fd);
 		void	OPER(const int &sender_fd);
