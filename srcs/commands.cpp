@@ -202,10 +202,25 @@ void	Server::NICK(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	this->_clients[sender_fd]->setNickname(args[1]);
-	this->_nicknames.push_back(args[1]);
+	to_send = ":";
 	if (find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[sender_fd]->getNickname()) != this->_nicknames.end())
 		this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[sender_fd]->getNickname()));
+	to_send.append(this->_clients[sender_fd]->getNickname());
+	this->_clients[sender_fd]->setNickname(args[1]);
+	this->_nicknames.push_back(args[1]);
+	to_send.append(" NICK ");
+	to_send.append(args[1]);
+	to_send.append("\r\n");
+	for (std::map<int, Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
+	{
+		send(it->first, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+	}
+	to_send = ":";
+	to_send.append(this->_name);
+	to_send.append(" NICK change successful: ");
+	to_send.append(args[1]);
+	to_send.append("\r\n");
+	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 	if (this->_clients[sender_fd]->getUsername().size() > 0 && this->_clients[sender_fd]->getIsRegistered() == false)
 	{
 		this->_clients[sender_fd]->setIsRegistered(true);
