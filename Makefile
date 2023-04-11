@@ -2,6 +2,7 @@ SRC_FILES		=	main.cpp \
 					Server.cpp \
 					Client.cpp \
 					commands.cpp \
+					PrivMsg.cpp \
 					SHA1.cpp
 
 SRC_DIR			=	srcs/

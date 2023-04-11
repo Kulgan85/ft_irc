@@ -26,7 +26,7 @@ void	Server::NOTICE(const int &sender_fd)
 		return;
 	}
 
-	for (int i = 0; i < targets.size(); i++)
+	for (std::vector<std::string>::size_type i = 0; i < targets.size(); i++)
 	{
 		if (targets[i][0] == '#' || targets[i][0] == '&')
 		{
@@ -43,6 +43,7 @@ void	Server::NOTICE(const int &sender_fd)
 					toSend.append(c->getNickname());
 					toSend.append(" NOTICE ");
 					toSend.append((*it).second->getNickname());
+					toSend.append(" :");
 					toSend.append(args[2]);
 					toSend.append("\r\n");
 					send((*it).second->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
@@ -68,7 +69,7 @@ void	Server::PMSG(const int &sender_fd)
 		return;
 	}
 
-	for (int i = 0; i < targets.size(); i++)
+	for (std::vector<std::string>::size_type i = 0; i < targets.size(); i++)
 	{
 		if (targets[i][0] == '#' || targets[i][0] == '&')
 		{
@@ -85,6 +86,7 @@ void	Server::PMSG(const int &sender_fd)
 					toSend.append(c->getNickname());
 					toSend.append(" PRIVMSG ");
 					toSend.append((*it).second->getNickname());
+					toSend.append(" :");
 					toSend.append(args[2]);
 					toSend.append("\r\n");
 					send((*it).second->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
