@@ -52,7 +52,47 @@ std::vector<std::string> Server::_splitString(std::string str)
 	return (tokens);
 }
 
-void	Server::JOIN(const int &sender_fd) {(void)sender_fd;}
+// void	Server::JOIN(const int &sender_fd) {(void)sender_fd;}
+// 	std::unordered_map<std::string, /*Nickname??*/ channels;
+// 	std::string channel_name = message.substr(5, message.find("\r\n") - 5);
+// 	std::string to_send;
+// 	auto channel_it = channels.find(channel_name);
+// 	if (channel_it == channels.end())
+// 	{
+// 		channels.insert(std::make_pair(channel_name, /*Nickname??*/));
+// 		to_send = "Channel ";
+// 		to_send.append(channel_name);
+// 		to_send.append(" created!\r\n")
+// 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+// 	}
+// 	else
+// 	{
+// 		channel_it->second.push_back(new_user);
+// 	}
+// 	std::out << this->_clients[sender_fd]->getNickname() << " has joined " << channel_name << "\r\n";
+
+// void USER::JOIN(std::string target)
+// {
+// 	std::vector<std::string>			target_split = split(target, ',');
+// 	std::vector<std::string>::iterator	it = target_split.begin();
+// 	std::vector<Channel>::iterator		channel;
+// 	std::string 						msg;
+
+// 	if (target[0] == '0' && target.length() == 1)
+// 		return part("", ":*");
+// 	while (it != target_split.end())
+// 	{
+// 		channel = this->get_channel(*it);
+// 		msg = ERR_BADCHANMASK + *it + " :Channel names have to start with #\r\n";
+// 		if (it[0][0] != '#')
+// 			send(this->_fd, msg.c_str(), msg.length(), 0);
+// 		else if (channel == this->_serv->channels.end())
+// 			this->_serv->channels.push_back(Channel(*it, &get_user(this->_nick_name)->second));
+// 		else
+// 			channel->join(&get_user(this->_nick_name)->second);
+// 		++it;
+// 	}
+// }
 
 void	Server::PASS(const int &sender_fd)
 {
