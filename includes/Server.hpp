@@ -23,6 +23,11 @@
 # include "Exceptions.hpp"
 # include "SHA1.hpp"
 
+struct Channel {
+    std::string name;
+    std::vector<int> clients;
+};
+
 class Server
 {
 	private:
