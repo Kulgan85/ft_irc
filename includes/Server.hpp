@@ -48,6 +48,9 @@ class Server
 		void	_runCommands(int sender_fd);
 		bool	_isValidChar(char c);
 		bool	_isValidNick(std::string str);
+		void	_createChannel(std::string name);
+		void	_destroyChannel(std::string name);
+		void	_destroyChannel(Channel* channel);
 
 		std::vector<std::string>	_splitString(std::string str);
 		std::deque<std::string>		_splitMessages(std::string message);
@@ -78,7 +81,7 @@ class Server
 		std::vector<std::string>	_nicknames;
 		std::map<int, Client *>	_clients;
 		std::map<std::string, void (Server::*)(const int &)>	_commands;
-		std::map<std::string, std::vector<int> >		_channels;
+		std::map<std::string, Channel*>		_channels;
 
 	public:
 		Server(std::string port, std::string password);
