@@ -21,7 +21,6 @@ class Channel
 	std::string				_topic;
 	std::vector<std::string>	_operatorIPs;
 	std::vector<std::string>	_bannedIPs;
-
 };
 
 #endif
