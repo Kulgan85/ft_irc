@@ -13,7 +13,10 @@ class Channel
 	int	LeaveChannel(Client* toLeave);
 	int	LeaveChannel(int sender_fd, std::string reason);	//TO DO - ANNOUNCE USER LEAVING & REASON
 	int	KickClient(Client* toKick);
+	int	BanClient(Client* toBan);
 	int	ChangeTopic(std::string newTopic);
+	bool	ClientIsInChannel(Client* client);
+	bool	ClientIsBanned(Client* client);
 
 	private:
 	Channel();

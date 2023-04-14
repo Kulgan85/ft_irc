@@ -24,7 +24,7 @@ class	Client
 		Client(int fd);
 		~Client();
 
-		std::vector<std::string>	joined_channels;
+		std::vector<Channel*>	joined_channels;
 
 		void	setUsername(std::string username);
 		void	setNickname(std::string nickname);

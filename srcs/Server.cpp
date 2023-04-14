@@ -321,3 +321,9 @@ void	Server::launch()
 		}
 	}
 }
+
+void	Server::_createChannel(std::string name)
+{
+	Channel* newChan = new Channel(name);
+	_channels.insert(std::make_pair(name, newChan));
+}
