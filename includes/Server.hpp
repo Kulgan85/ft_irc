@@ -19,14 +19,11 @@
 # include <unistd.h>
 # include <utility>
 # include <cctype>
+# include <unordered_map>
 # include "Client.hpp"
 # include "Exceptions.hpp"
 # include "SHA1.hpp"
-
-struct Channel {
-    std::string name;
-    std::vector<int> clients;
-};
+# include "Channel.hpp"
 
 class Server
 {
@@ -49,6 +46,7 @@ class Server
 		bool	_isValidChar(char c);
 		bool	_isValidNick(std::string str);
 		void	_createChannel(std::string name);
+		void	_joinChannel(std::string channel_name, int sender_fd);
 		void	_destroyChannel(std::string name);
 		void	_destroyChannel(Channel* channel);
 

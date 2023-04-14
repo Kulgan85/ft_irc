@@ -54,63 +54,32 @@ std::vector<std::string> Server::_splitString(std::string str)
 
 void	Server::JOIN(const int &sender_fd)
 {
-	Channel channel;
-	std::vector<std::string> channel_name = this->_splitString(this->_clients[sender_fd]->getMessage);
-	if (channel_name.empty() == true)
+	std::vector<std::string> user_input = this->_splitString(this->_clients[sender_fd]->getMessage);
+	
+	if (user_input[2].empty() == true)
 		return ;
-	if (channel_name.front != '#' || channel_name.front != '&')
+	if (user_input[2].front != '#' || user_input[2].front != '&')
 	{
 		std::cout << "Error: Channel name must start with a # or an &" << std::endl;
 		return ; 
 	}
-	for (int i = 0; i < channel_name.size; i++)
+	std::map<std::string,Channel*>::iterator it;
+	for (it = _channels.begin(); it != _channels.end(); it++)
 	{
-		if (channel.name == channel_name[i])
-		{
-			join_channel(sender_fd, channel_name[i]);
-			break ;
-		}
-		else
-		{
-			create_channel(channel_name[i]);
-			join_channel(sender_fd, channel_name[i]);
-			break ;
-		}
+		if (it->first == user_input[2])
+			_joinChannel(user_input[2], sender_fd);
+	}
+	if (it == _channels.end())
+	{
+		_createChannel(user_input[2]);
+		_joinChannel(user_input[2], sender_fd);
 	}
 }
 
-// Create a new channel with the given name
-void create_channel(std::string name) {
-    Channel channel;
-    channel.name = name;
-    channels.push_back(channel);
-}
-
-// Add a client to a channel
-void join_channel(int client_fd, std::string channel_name) {
-    for (auto& channel : channels) {
-        if (channel.name == channel_name) {
-            channel.clients.push_back(client_fd);
-            std::cout << "Client " << client_fd << " joined channel " << channel_name << "\n";
-            return;
-        }
-    }
-    std::cout << "Channel " << channel_name << " does not exist\n";
-}
-
-// Remove a client from a channel
-void leave_channel(int client_fd, std::string channel_name) {
-    for (auto& channel : channels) {
-        if (channel.name == channel_name) {
-            auto it = std::find(channel.clients.begin(), channel.clients.end(), client_fd);
-            if (it != channel.clients.end()) {
-                channel.clients.erase(it);
-                std::cout << "Client " << client_fd << " left channel " << channel_name << "\n";
-                return;
-            }
-        }
-    }
-    std::cout << "Client " << client_fd << " is not in channel " << channel_name << "\n";
+// Handles stuff to give to the actualy join channel
+void Server::_joinChannel(std::string channel_name, int sender_fd) {
+    Channel *channelptr = _channels.find(channel_name)->second;
+	channelptr->JoinChannel(sender_fd);
 }
 
 void	Server::PASS(const int &sender_fd)
@@ -156,8 +125,53 @@ void	Server::PASS(const int &sender_fd)
 	}
 }
 
-void	Server::LEAVE(const int &sender_fd) {(void)sender_fd;}
+static std::vector<std::string>	getTargets(std::string commaList)
+{
+	std::vector<std::string> output;
+	std::string::size_type prevPos = 0, pos = 0;
 
+	while ((pos = commaList.find(',', pos)) != std::string::npos)
+	{
+		std::string subStr(commaList.substr(prevPos, pos - prevPos));
+		output.push_back(subStr);
+		prevPos = ++pos;
+	}
+	output.push_back(commaList.substr(prevPos, pos - prevPos));
+	return output;
+}
+
+//[2] = channel names
+//[3] = reason
+void	Server::LEAVE(const int &sender_fd) 
+{	
+	std::vector<std::string> user_input = this->_splitString(this->_clients[sender_fd]->getMessage);
+	if (user_input[2].empty() == true)
+		return ;
+	if (user_input[2].front != '#' || user_input[2].front != '&')
+	{
+		std::cout << "Error: Channel name must start with a # or an &" << std::endl;
+		return ; 
+	}
+	std::vector<std::string> target_channels = getTargets(user_input[2]);
+	for (int i = 0; i < target_channels.size(); i++)
+	{
+		std::map<std::string,Channel*>::iterator it;
+		for (it = _channels.begin(); it != _channels.end(); it++)
+		{
+			if (it->first == target_channels[i])
+				it->second->LeaveChannel(sender_fd, user_input[3]);
+		}
+		if (it == _channels.end())
+		{
+			std::cout << "ERROR CHANNEL DOESN'T EXIST" << std::endl;
+		}
+	}
+}
+
+void Server::_joinChannel(std::string channel_name, int sender_fd) {
+    Channel *channelptr = _channels.find(channel_name)->second;
+	channelptr->JoinChannel(sender_fd);
+}
 void	Server::OPER(const int &sender_fd)
 {
 	std::string	to_send;
