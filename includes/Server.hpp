@@ -61,6 +61,8 @@ class Server
 		void	NOTICE(const int &sender_fd);
 		void	JOIN(const int &sender_fd);
 		void	LEAVE(const int &sender_fd);
+		void	TOPIC(const int &sender_fd);
+		void	NAMES(const int &sender_fd);
 		void	OPER(const int &sender_fd);
 		void	QUIT(const int &sender_fd);
 		void	LIST(const int &sender_fd);

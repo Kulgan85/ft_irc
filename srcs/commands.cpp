@@ -165,6 +165,71 @@ void	Server::LEAVE(const int &sender_fd)
 	}
 }
 
+void	Server::TOPIC(const int& sender_fd)
+{
+		std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+		std::string toSend = ":";
+		Client*	client = _clients[sender_fd];
+		if (args.size() < 3)
+		{
+			toSend.append("ircserv 461 ");
+			toSend.append(client->getNickname());
+			toSend.append(" TOPIC :Not enough parameters\r\n");
+			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+			return;
+		}
+		Channel*	channel;
+		try
+		{
+			channel = _channels.at(args[2]);
+		}
+		catch(const std::exception& e)
+		{
+			toSend.append("ircserv 403 ");
+			toSend.append(client->getNickname());
+			toSend.push_back(' ');
+			toSend.append(args[2]);
+			toSend.append(" :No such channel\r\n");
+			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+			return;
+		}
+		if (!channel->ClientIsInChannel(client))
+		{
+			toSend.append("ircserv 442 ");
+			toSend.append(client->getNickname());
+			toSend.push_back(' ');
+			toSend.append(args[2]);
+			toSend.append(" :You're not on that channel\r\n");
+			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+			return;
+		}
+		if (args.size() == 3)
+		{
+			std::string topic = channel->GetTopic();
+			if (topic.empty())
+				{ toSend.append("ircserv 331 "); topic = "No topic is set"; }
+			else
+				toSend.append("ircserv 332 ");
+			toSend.append(client->getNickname());
+			toSend.push_back(' ');
+			toSend.append(args[2]);
+			toSend.append(" :");
+			toSend.append(topic);
+			toSend.append("\r\n");
+			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+			return;
+		}
+		//	IDK if I even want channel operators
+		//	if (!channel->IsChannelOperator(client))
+		//		{ return "fuk off"; }
+		channel->ChangeTopic(client, args[3]);
+}
+
+void	Server::NAMES(const int& sender_fd)
+{
+
+}
+
 void Server::_joinChannel(std::string channel_name, int sender_fd) {
     Channel *channelptr = _channels.find(channel_name)->second;
 	channelptr->JoinChannel(_clients[sender_fd]);

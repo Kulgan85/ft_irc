@@ -140,10 +140,10 @@ void	Channel::SendMessage(Client* sender, std::string message)
 
 int	Channel::KickClient(Client* kicker, Client* toKick, std::string reason)
 {
-	std::string toSend;
+	std::string toSend = ":";
 	if (!ClientIsInChannel(toKick))
 	{
-		toSend = ":ircserv 441 ";
+		toSend.append("ircserv 441 ");
 		toSend.append(kicker->getNickname());
 		toSend.push_back(' ');
 		toSend.append(toKick->getNickname());
@@ -153,12 +153,47 @@ int	Channel::KickClient(Client* kicker, Client* toKick, std::string reason)
 		send(kicker->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return 1;
 	}
-
+	toSend.append(kicker->getNickname());
+	toSend.append(" KICK ");
+	toSend.append(_name);
+	toSend.push_back(' ');
+	toSend.append(toKick->getNickname());
+	if (reason.empty())
+	{
+		toSend.append(" :You have been kicked");
+	}
+	else
+	{
+		toSend.append(" :");
+		toSend.append(reason);
+	}
+	toSend.append("\r\n");
+	send(toKick->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	std::vector<Client*>::iterator it;
+	for (it = _clients.begin(); *it != toKick; it++) ;
+	_clients.erase(it);
+	std::vector<Channel*>::iterator it2;
+	for (it2 = toKick->joined_channels.begin(); *it2 != this; it2++) ;
+	toKick->joined_channels.erase(it2);
 }
 
-int	Channel::ChangeTopic(std::string newTopic)
+int	Channel::ChangeTopic(Client* changer, std::string newTopic)
 {
 	_topic = newTopic;
+	std::string toSend = ":";
+	toSend.append(changer->getNickname());
+	toSend.push_back(' ');
+	toSend.append(_name);
+	toSend.append(" :");
+	toSend.append(newTopic);
+	toSend.append("\r\n");
+	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
+		send((*it)->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+}
+
+std::string	Channel::GetTopic()
+{
+	return _topic;
 }
 
 bool Channel::ClientIsInChannel(Client* client)
