@@ -38,8 +38,21 @@ int	Channel::JoinChannel(Client* toJoin)
 		toSend.append("\r\n");
 		send(toJoin->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 	}
-	toSend = ":ircserv 353 ";
+	SendNames(toJoin);
+	toSend = ":";
 	toSend.append(toJoin->getNickname());
+	toSend.append(" JOIN ");
+	toSend.append(_name);
+	toSend.append("\r\n");
+	for (size_t i = 0; i < _clients.size() - 1; i++)
+		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	return 0;
+}
+
+void	Channel::SendNames(Client* sendTo)
+{
+	std::string toSend = ":ircserv 353 ";
+	toSend.append(sendTo->getNickname());
 	toSend.append(" = ");
 	toSend.append(_name);
 	toSend.append(" :");
@@ -50,21 +63,13 @@ int	Channel::JoinChannel(Client* toJoin)
 			toSend.append(" ");
 	}
 	toSend.append("\r\n");
-	send(toJoin->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	send(sendTo->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 	toSend = ":ircserv 366 ";
-	toSend.append(toJoin->getNickname());
+	toSend.append(sendTo->getNickname());
 	toSend.push_back(' ');
 	toSend.append(_name);
 	toSend.append(" :End of NAMES List\r\n");
-	send(toJoin->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
-	toSend = ":";
-	toSend.append(toJoin->getNickname());
-	toSend.append(" JOIN ");
-	toSend.append(_name);
-	toSend.append("\r\n");
-	for (size_t i = 0; i < _clients.size() - 1; i++)
-		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
-	return 0;
+	send(sendTo->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 }
 
 int Channel::LeaveChannel(Client* toLeave, std::string reason)

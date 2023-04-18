@@ -14,6 +14,7 @@ class Channel
 	int		KickClient(Client* kicker, Client* toKick, std::string reason);
 	int		ChangeTopic(Client* changer, std::string newTopic);
 	bool	ClientIsInChannel(Client* client);
+	void	SendNames(Client* sendTo);
 	std::string	GetTopic();
 
 	private:
