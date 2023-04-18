@@ -327,3 +327,16 @@ void	Server::_createChannel(std::string name)
 	Channel* newChan = new Channel(name);
 	_channels.insert(std::make_pair(name, newChan));
 }
+
+void	Server::_destroyChannel(std::string name)
+{
+	Channel* chanPtr = _channels.find(name)->second;
+	_destroyChannel(chanPtr);
+}
+
+void	Server::_destroyChannel(Channel* channel)
+{
+	// Should a channel be able to be destroyed if there are clients connected?
+	// When does a channel even get destroyed? Theres no command to. Is this only when the server closes?
+	// Should this function even exist?
+}

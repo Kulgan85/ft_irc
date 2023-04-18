@@ -54,32 +54,25 @@ std::vector<std::string> Server::_splitString(std::string str)
 
 void	Server::JOIN(const int &sender_fd)
 {
-	std::vector<std::string> user_input = this->_splitString(this->_clients[sender_fd]->getMessage);
+	std::vector<std::string> user_input = this->_splitString(this->_clients[sender_fd]->getMessage());
 	
 	if (user_input[2].empty() == true)
 		return ;
-	if (user_input[2].front != '#' || user_input[2].front != '&')
+	if (user_input[2][0] != '#' || user_input[2][0] != '&')
 	{
 		std::cout << "Error: Channel name must start with a # or an &" << std::endl;
 		return ; 
 	}
-	std::map<std::string,Channel*>::iterator it;
-	for (it = _channels.begin(); it != _channels.end(); it++)
-	{
-		if (it->first == user_input[2])
-			_joinChannel(user_input[2], sender_fd);
-	}
+	std::map<std::string,Channel*>::iterator it = _channels.find(user_input[2]);
 	if (it == _channels.end())
-	{
 		_createChannel(user_input[2]);
-		_joinChannel(user_input[2], sender_fd);
-	}
+	_joinChannel(user_input[2], sender_fd);
 }
 
 // Handles stuff to give to the actualy join channel
 void Server::_joinChannel(std::string channel_name, int sender_fd) {
     Channel *channelptr = _channels.find(channel_name)->second;
-	channelptr->JoinChannel(sender_fd);
+	channelptr->JoinChannel(_clients[sender_fd]);
 }
 
 void	Server::PASS(const int &sender_fd)
