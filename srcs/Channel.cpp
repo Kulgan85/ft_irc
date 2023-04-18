@@ -67,22 +67,53 @@ int	Channel::JoinChannel(Client* toJoin)
 	toSend.append(_name);
 	toSend.append(" :End of NAMES List\r\n");
 	send(toJoin->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	toSend = ":";
+	toSend.append(toJoin->getNickname());
+	toSend.append(" JOIN ");
+	toSend.append(_name);
+	toSend.append("\r\n");
+	for (size_t i = 0; i < _clients.size() - 1; i++)
+		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 	return 0;
 }
 
-int Channel::JoinChannel(int sender_fd)
+int Channel::LeaveChannel(Client* toLeave, std::string reason)
 {
-
-}
-
-int Channel::LeaveChannel(Client* toLeave)
-{
-
-}
-
-int	Channel::LeaveChannel(int sender_fd, std::string reason)
-{
-
+	std::string toSend;
+	if (!ClientIsInChannel(toLeave))
+	{
+		toSend = ":ircserv 442 ";
+		toSend.append(toLeave->getNickname());
+		toSend.push_back(' ');
+		toSend.append(_name);
+		toSend.append(" :You are not on the channel\r\n");
+		send(toLeave->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return 1;
+	}
+	std::vector<Client*>::iterator it;
+	for (it = _clients.begin(); *it != toLeave; it++) ;
+	_clients.erase(it);
+	toSend = ":ircserv PART ";
+	toSend.append(_name);
+	if (!reason.empty())
+	{
+		toSend.append(" :");
+		toSend.append(reason);
+	}
+	toSend.append("\r\n");
+	send(toLeave->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	toSend = ":";
+	toSend.append(toLeave->getNickname());
+	toSend.append(" PART ");
+	toSend.append(_name);
+	if (!reason.empty())
+	{
+		toSend.append(" :");
+		toSend.append(reason);
+	}
+	toSend.append("\r\n");
+	for (size_t i = 0; i < _clients.size(); i++)
+		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 }
 
 int	Channel::KickClient(Client* toKick)

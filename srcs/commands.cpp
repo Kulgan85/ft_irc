@@ -137,33 +137,37 @@ static std::vector<std::string>	getTargets(std::string commaList)
 //[3] = reason
 void	Server::LEAVE(const int &sender_fd) 
 {	
-	std::vector<std::string> user_input = this->_splitString(this->_clients[sender_fd]->getMessage);
-	if (user_input[2].empty() == true)
-		return ;
-	if (user_input[2].front != '#' || user_input[2].front != '&')
+	Client*						client = _clients[sender_fd];
+	std::vector<std::string>	user_input = this->_splitString(client->getMessage());
+	if (user_input[2].empty())
 	{
-		std::cout << "Error: Channel name must start with a # or an &" << std::endl;
-		return ; 
+		std::string toSend = ":ircserv 461 ";
+		toSend.append(client->getNickname());
+		toSend.append(" PART :Not enough parameters\r\n");
+		send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return ;
 	}
 	std::vector<std::string> target_channels = getTargets(user_input[2]);
 	for (int i = 0; i < target_channels.size(); i++)
 	{
-		std::map<std::string,Channel*>::iterator it;
-		for (it = _channels.begin(); it != _channels.end(); it++)
+		std::map<std::string,Channel*>::iterator it = _channels.find(target_channels[i]);
+		if (it != _channels.end())
+			it->second->LeaveChannel(client, user_input[3]);
+		else
 		{
-			if (it->first == target_channels[i])
-				it->second->LeaveChannel(sender_fd, user_input[3]);
-		}
-		if (it == _channels.end())
-		{
-			std::cout << "ERROR CHANNEL DOESN'T EXIST" << std::endl;
+			std::string toSend = ":ircserv 403 ";
+			toSend.append(client->getNickname());
+			toSend.push_back(' ');
+			toSend.append(target_channels[i]);
+			toSend.append(" :No such channel\r\n");
+			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		}
 	}
 }
 
 void Server::_joinChannel(std::string channel_name, int sender_fd) {
     Channel *channelptr = _channels.find(channel_name)->second;
-	channelptr->JoinChannel(sender_fd);
+	channelptr->JoinChannel(_clients[sender_fd]);
 }
 void	Server::OPER(const int &sender_fd)
 {

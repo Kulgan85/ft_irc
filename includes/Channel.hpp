@@ -9,9 +9,7 @@ class Channel
 	Channel(std::string name);
 	~Channel();
 	int	JoinChannel(Client* toJoin);
-	int	JoinChannel(int sender_fd);		//TO DO - ANNOUNCE USER JOINING
-	int	LeaveChannel(Client* toLeave);
-	int	LeaveChannel(int sender_fd, std::string reason);	//TO DO - ANNOUNCE USER LEAVING & REASON
+	int	LeaveChannel(Client* toLeave, std::string reason);
 	int	KickClient(Client* toKick);
 	int	BanClient(Client* toBan);
 	int	ChangeTopic(std::string newTopic);
