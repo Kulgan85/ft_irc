@@ -23,16 +23,6 @@ int	Channel::JoinChannel(Client* toJoin)
 		std::cerr << "Client already joined";
 		return 1;
 	}
-	if (ClientIsBanned(toJoin))
-	{
-		toSend = ":ircserv 474 ";
-		toSend.append(toJoin->getNickname());
-		toSend.push_back(' ');
-		toSend.append(_name);
-		toSend.append(" :Cannot join channel (+b)\r\n");
-		send(toJoin->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
-		return 1;
-	}
 	_clients.push_back(toJoin);
 	toJoin->joined_channels.push_back(this);
 	toSend = ":";
@@ -90,9 +80,14 @@ int Channel::LeaveChannel(Client* toLeave, std::string reason)
 		send(toLeave->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return 1;
 	}
-	std::vector<Client*>::iterator it;
-	for (it = _clients.begin(); *it != toLeave; it++) ;
-	_clients.erase(it);
+	{
+		std::vector<Client*>::iterator it;
+		for (it = _clients.begin(); *it != toLeave; it++) ;
+		_clients.erase(it);
+		std::vector<Channel*>::iterator it2;
+		for (it2 = toLeave->joined_channels.begin(); *it2 != this; it2++) ;
+		toLeave->joined_channels.erase(it2);
+	}
 	toSend = ":ircserv PART ";
 	toSend.append(_name);
 	if (!reason.empty())
@@ -116,16 +111,49 @@ int Channel::LeaveChannel(Client* toLeave, std::string reason)
 		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 }
 
-int	Channel::KickClient(Client* toKick)
+void	Channel::SendMessage(Client* sender, std::string message)
 {
-
+	std::string toSend = ":";
+	if (!ClientIsInChannel(sender))
+	{
+		toSend.append("ircserv 404 ");
+		toSend.append(sender->getNickname());
+		toSend.push_back(' ');
+		toSend.append(_name);
+		toSend.append(" :Cannot send to channel (+n)\r\n");
+		send(sender->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return;
+	}
+	toSend.append(sender->getNickname());
+	toSend.append(" PRIVMSG ");
+	toSend.append(_name);
+	toSend.append(" :");
+	toSend.append(message);
+	toSend.append("\r\n");
+	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		if (*it == sender)
+			continue;
+		send((*it)->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	}
 }
 
-int	Channel::BanClient(Client* toBan)
+int	Channel::KickClient(Client* kicker, Client* toKick, std::string reason)
 {
-	if (ClientIsInChannel(toBan))
-		KickClient(toBan);
-	_bannedIPs.push_back(toBan->getIPAddress());
+	std::string toSend;
+	if (!ClientIsInChannel(toKick))
+	{
+		toSend = ":ircserv 441 ";
+		toSend.append(kicker->getNickname());
+		toSend.push_back(' ');
+		toSend.append(toKick->getNickname());
+		toSend.push_back(' ');
+		toSend.append(_name);
+		toSend.append(" :They aren't on that channel\r\n");
+		send(kicker->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return 1;
+	}
+
 }
 
 int	Channel::ChangeTopic(std::string newTopic)
@@ -138,16 +166,6 @@ bool Channel::ClientIsInChannel(Client* client)
 	for (int i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i] == client)
-			return true;
-	}
-	return false;
-}
-
-bool	Channel::ClientIsBanned(Client* client)
-{
-	for (int i = 0; i < _bannedIPs.size(); i++)
-	{
-		if (_bannedIPs[i] == client->getIPAddress())
 			return true;
 	}
 	return false;

@@ -286,7 +286,9 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_commands["PRIVMSG"] = &Server::PMSG;
 	this->_commands["NOTICE"] = &Server::NOTICE;
 	this->_commands["JOIN"] = &Server::JOIN;
-	this->_commands["LEAVE"] = &Server::LEAVE;
+	this->_commands["PART"] = &Server::LEAVE;
+	this->_commands["TOPIC"] = &Server::TOPIC;
+	this->_commands["NAMES"] = &Server::NAMES;
 	this->_commands["LIST"] = &Server::LIST;
 	this->_commands["OPER"] = &Server::OPER;
 	this->_commands["QUIT"] = &Server::QUIT;

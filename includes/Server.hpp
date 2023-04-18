@@ -49,6 +49,7 @@ class Server
 		void	_joinChannel(std::string channel_name, int sender_fd);
 		void	_destroyChannel(std::string name);
 		void	_destroyChannel(Channel* channel);
+		void	_sendMessage(int sender_fd, bool silent = false);
 
 		std::vector<std::string>	_splitString(std::string str);
 		std::deque<std::string>		_splitMessages(std::string message);
