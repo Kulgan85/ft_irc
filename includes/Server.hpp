@@ -24,6 +24,7 @@
 # include "Exceptions.hpp"
 # include "SHA1.hpp"
 # include "Channel.hpp"
+# include "Utils.hpp"
 
 class Server
 {
@@ -43,16 +44,12 @@ class Server
 		void	_useMessage(int sender_fd);
 		void	_sendWelcome(int sender_fd);
 		void	_runCommands(int sender_fd);
-		bool	_isValidChar(char c);
 		bool	_isValidNick(std::string str);
 		void	_createChannel(std::string name);
 		void	_joinChannel(std::string channel_name, int sender_fd);
 		void	_destroyChannel(std::string name);
 		void	_destroyChannel(Channel* channel);
 		void	_sendMessage(int sender_fd, bool silent = false);
-
-		std::vector<std::string>	_splitString(std::string str);
-		std::deque<std::string>		_splitMessages(std::string message);
 
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);

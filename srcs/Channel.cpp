@@ -183,6 +183,7 @@ int	Channel::ChangeTopic(Client* changer, std::string newTopic)
 	std::string toSend = ":";
 	toSend.append(changer->getNickname());
 	toSend.push_back(' ');
+	toSend.append(" TOPIC ");
 	toSend.append(_name);
 	toSend.append(" :");
 	toSend.append(newTopic);

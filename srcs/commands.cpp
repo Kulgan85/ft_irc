@@ -1,60 +1,8 @@
 #include "Server.hpp"
 
-std::vector<std::string> Server::_splitString(std::string str)
-{
-	for (std::string::size_type i = 0; i < str.size(); i++)
-	{
-		std::cout << (int)str[i] << " ";
-	}
-	std::cout << std::endl;
-	if (str.at(str.length() - 1) == '\n')
-		str.erase(str.length() - 1);
-	if (str.at(str.length() - 1) == '\r')
-		str.erase(str.length() - 1);
-	std::vector<std::string> tokens;
-	std::string	buf;
-
-	for (std::string::size_type i = 0; i < str.size(); i++)
-	{
-		buf.clear();
-		if (str[i] == ':')
-		{
-// This next line removes the ':' character from the start of the last parameter
-			++i;
-			while (i < str.size())
-			{
-				buf.push_back(str[i]);
-				++i;
-			}
-			tokens.push_back(buf);
-		}
-		else if (str[i] != ' ')
-		{
-			while (str[i] != ' ' && i < str.size())
-			{
-				if (!(Server::_isValidChar(str[i])))
-				{
-					if (i == 0 && str[i] == '*' && tokens.size() == 2 && tokens[0].compare("USER") == 0)
-						;
-					else
-					{
-						std::cout << "Invalid character is |" << (int)str[i] << "|\n"; 
-						tokens.clear();
-						return (tokens);
-					}
-				}
-				buf.push_back(str[i]);
-				++i;
-			}
-			tokens.push_back(buf);
-		}
-	}
-	return (tokens);
-}
-
 void	Server::JOIN(const int &sender_fd)
 {
-	std::vector<std::string> user_input = this->_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string> user_input = _splitString(this->_clients[sender_fd]->getMessage());
 	
 	if (user_input[2].empty() == true)
 		return ;
@@ -77,7 +25,7 @@ void Server::_joinChannel(std::string channel_name, int sender_fd) {
 
 void	Server::PASS(const int &sender_fd)
 {
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	if (args.empty() == true)
 		return ;
 	std::string	to_send;
@@ -118,27 +66,12 @@ void	Server::PASS(const int &sender_fd)
 	}
 }
 
-static std::vector<std::string>	getTargets(std::string commaList)
-{
-	std::vector<std::string> output;
-	std::string::size_type prevPos = 0, pos = 0;
-
-	while ((pos = commaList.find(',', pos)) != std::string::npos)
-	{
-		std::string subStr(commaList.substr(prevPos, pos - prevPos));
-		output.push_back(subStr);
-		prevPos = ++pos;
-	}
-	output.push_back(commaList.substr(prevPos, pos - prevPos));
-	return output;
-}
-
 //[2] = channel names
 //[3] = reason
 void	Server::LEAVE(const int &sender_fd) 
 {	
 	Client*						client = _clients[sender_fd];
-	std::vector<std::string>	user_input = this->_splitString(client->getMessage());
+	std::vector<std::string>	user_input = _splitString(client->getMessage());
 	if (user_input[2].empty())
 	{
 		std::string toSend = ":ircserv 461 ";
@@ -167,9 +100,9 @@ void	Server::LEAVE(const int &sender_fd)
 
 void	Server::TOPIC(const int& sender_fd)
 {
-		std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+		Client*						client = _clients[sender_fd];
+		std::vector<std::string>	args = _splitString(client->getMessage());
 		std::string toSend = ":";
-		Client*	client = _clients[sender_fd];
 		if (args.size() < 3)
 		{
 			toSend.append("ircserv 461 ");
@@ -253,7 +186,7 @@ void	Server::OPER(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	if (args.empty() == true)
 		return ;
 	if (args.size() < 3)
@@ -306,7 +239,7 @@ void	Server::NICK(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	if (args.empty() == true)
 		return ;
 	if (args.size() < 2)
@@ -382,7 +315,7 @@ void	Server::USER(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	if (args.empty() == true)
 		return ;
 	if (args.size() < 4)
@@ -405,7 +338,7 @@ void	Server::USER(const int &sender_fd)
 
 void	Server::QUIT(const int &sender_fd)
 {
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	std::string	quit_message = ":";
 	quit_message.append(this->_clients[sender_fd]->getNickname());
 	quit_message.push_back('!');
@@ -454,7 +387,7 @@ void	Server::KILL(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	if (args.size() < 3)
 	{
 		to_send = ":ircserv 461 ";

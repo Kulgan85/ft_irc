@@ -1,17 +1,5 @@
 #include "Server.hpp"
 
-std::deque<std::string>	Server::_splitMessages(std::string message)
-{
-	std::deque<std::string>	ret;
-
-	while (message.find('\n') != std::string::npos)
-	{
-		ret.push_back(message.substr(0, message.find('\n') + 1));
-		message.erase(0, message.find('\n') + 1);
-	}
-	return (ret);
-}
-
 void	Server::_removeFromPoll(int pfds_index)
 {
 	close(this->_pfds[pfds_index].fd);
@@ -63,7 +51,7 @@ void	Server::_newClient(void)
 
 void	Server::_runCommands(int sender_fd)
 {
-	std::deque<std::string>	messages = Server::_splitMessages(this->_clients.at(sender_fd)->getMessage());
+	std::deque<std::string>	messages = _splitMessages(this->_clients.at(sender_fd)->getMessage());
 	while (messages.size() > 0)
 	{
 		std::cout << "message is |" << messages[0] << "|\n";
@@ -105,13 +93,6 @@ void	Server::_runCommands(int sender_fd)
 		}
 		messages.pop_front();
 	}
-}
-
-bool	Server::_isValidChar(char c)
-{
-	if (c == '\0' || c == '\r' || c == '\n' || c == ':' || c == ' ')
-		return (false);
-	return (true);
 }
 
 bool	Server::_isValidNick(std::string str)
