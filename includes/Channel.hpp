@@ -15,7 +15,10 @@ class Channel
 	int		ChangeTopic(Client* changer, std::string newTopic);
 	bool	ClientIsInChannel(Client* client);
 	void	SendNames(Client* sendTo);
+
 	std::string	GetTopic();
+	std::string	GetName();
+	size_t		GetClientCount();
 
 	private:
 	Channel();

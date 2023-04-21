@@ -46,7 +46,6 @@ class Server
 		void	_runCommands(int sender_fd);
 		bool	_isValidNick(std::string str);
 		void	_createChannel(std::string name);
-		void	_joinChannel(std::string channel_name, int sender_fd);
 		void	_destroyChannel(std::string name);
 		void	_destroyChannel(Channel* channel);
 		void	_sendMessage(int sender_fd, bool silent = false);
@@ -57,12 +56,13 @@ class Server
 		void	PMSG(const int &sender_fd);
 		void	NOTICE(const int &sender_fd);
 		void	JOIN(const int &sender_fd);
-		void	LEAVE(const int &sender_fd);
+		void	PART(const int &sender_fd);
 		void	TOPIC(const int &sender_fd);
 		void	NAMES(const int &sender_fd);
+		void	LIST(const int &sender_fd);
+		void	KICK(const int& sender_fd);
 		void	OPER(const int &sender_fd);
 		void	QUIT(const int &sender_fd);
-		void	LIST(const int &sender_fd);
 		void	KILL(const int &sender_fd);
 		void	PING(const int &sender_fd);
 		void	PONG(const int &sender_fd);

@@ -202,6 +202,16 @@ std::string	Channel::GetTopic()
 	return _topic;
 }
 
+std::string	Channel::GetName()
+{
+	return _name;
+}
+
+size_t Channel::GetClientCount()
+{
+	return _clients.size();
+}
+
 bool Channel::ClientIsInChannel(Client* client)
 {
 	for (int i = 0; i < _clients.size(); i++)

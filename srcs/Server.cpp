@@ -264,18 +264,32 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_commands["PASS"] = &Server::PASS;
 	this->_commands["NICK"] = &Server::NICK;
 	this->_commands["USER"] = &Server::USER;
-	this->_commands["PRIVMSG"] = &Server::PMSG;
-	this->_commands["NOTICE"] = &Server::NOTICE;
+	this->_commands["PING"] = &Server::PING;
+	this->_commands["PONG"] = &Server::PONG;
+	this->_commands["OPER"] = &Server::OPER;
+	this->_commands["QUIT"] = &Server::QUIT;
+	//this->_commands["ERROR"] = &Server::ERROR;
+
 	this->_commands["JOIN"] = &Server::JOIN;
-	this->_commands["PART"] = &Server::LEAVE;
+	this->_commands["PART"] = &Server::PART;
 	this->_commands["TOPIC"] = &Server::TOPIC;
 	this->_commands["NAMES"] = &Server::NAMES;
 	this->_commands["LIST"] = &Server::LIST;
-	this->_commands["OPER"] = &Server::OPER;
-	this->_commands["QUIT"] = &Server::QUIT;
+	this->_commands["KICK"] = &Server::KICK;
+
+	//this->_commands["MOTD"] = &Server::MOTD;
+	//this->_commands["HELP"] = &Server::HELP;
+	//this->_commands["INFO"] = &Server::INFO;
+	//this->_commands["MODE"] = &Server::MODE;
+
+	this->_commands["PRIVMSG"] = &Server::PMSG;
+	this->_commands["NOTICE"] = &Server::NOTICE;
+
+	//this->_commands["WHO"] = &Server::WHO;
+	//this->_commands["WHOIS"] = &Server::WHOIS;
+	//this->_commands["WHOWAS"] = &Server::WHOWAS;
+
 	this->_commands["KILL"] = &Server::KILL;
-	this->_commands["PING"] = &Server::PING;
-	this->_commands["PONG"] = &Server::PONG;
 }
 
 Server::~Server()
