@@ -333,7 +333,12 @@ void	Server::_destroyChannel(std::string name)
 
 void	Server::_destroyChannel(Channel* channel)
 {
-	// Should a channel be able to be destroyed if there are clients connected?
+	// Should a channel be able to be destroyed if there are clients connected? 
+	// Yes, an IRC server is technically able to destroy a channel even if there are users in it. 
+
 	// When does a channel even get destroyed? Theres no command to. Is this only when the server closes?
+	// When server closes but also if a user wants to
+
 	// Should this function even exist?
+	// I believe so
 }
