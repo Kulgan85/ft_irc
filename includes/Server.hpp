@@ -1,6 +1,9 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+class Channel;
+class Client;
+
 # include <string>
 # include <map>
 # include <vector>
@@ -19,11 +22,10 @@
 # include <unistd.h>
 # include <utility>
 # include <cctype>
-# include <unordered_map>
+# include "Channel.hpp"
 # include "Client.hpp"
 # include "Exceptions.hpp"
 # include "SHA1.hpp"
-# include "Channel.hpp"
 # include "Utils.hpp"
 
 class Server

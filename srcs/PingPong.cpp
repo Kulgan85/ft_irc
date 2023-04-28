@@ -2,7 +2,7 @@
 
 void	Server::PING(const int &sender_fd)
 {
-	std::vector<std::string>	args = Server::_splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
 	
 	if (args.size() == 1)
 	{

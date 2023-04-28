@@ -132,6 +132,7 @@ void	Server::_sendWelcome(int sender_fd)
 {
 	std::string	to_send;
 
+	std::cout << "Sending welcome\n";
 	to_send = ":";
 	to_send.append(this->_name);
 	to_send.append(" 001 ");
@@ -302,6 +303,7 @@ Server::~Server()
 
 void	Server::launch()
 {
+	std::cout << "Server started on port " << _port << '\n';
 	while (1)
 	{
 		if (poll(this->_pfds, this->_pfd_count, -1) == -1)
@@ -333,6 +335,7 @@ void	Server::_destroyChannel(std::string name)
 
 void	Server::_destroyChannel(Channel* channel)
 {
+	(void)channel;
 	// Should a channel be able to be destroyed if there are clients connected? 
 	// Yes, an IRC server is technically able to destroy a channel even if there are users in it. 
 

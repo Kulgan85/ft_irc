@@ -14,7 +14,7 @@ void	Server::JOIN(const int &sender_fd)
 		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return;
 	}
-	if (user_input.size() <= 2)
+	if (user_input.size() <= 1)
 	{
 		toSend.append("ircserv 461 ");
 		toSend.append(client->getNickname());
@@ -22,33 +22,34 @@ void	Server::JOIN(const int &sender_fd)
 		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return;
 	}
-	if (user_input.size() == 3 && user_input[2] == "0");
+	if (user_input.size() == 2 && user_input[1] == "0")
 	{
 		for (std::vector<Channel*>::reverse_iterator it = client->joined_channels.rbegin(); it != client->joined_channels.rend(); it = client->joined_channels.rbegin())
 			(*it)->LeaveChannel(client, "Leaving all channels");
 		return;
 	}
-	if (user_input[2][0] != '#' || user_input[2][0] != '&')
+	if (user_input[1][0] != '#' && user_input[1][0] != '&')
 	{
 		// I can't find any info on what to do in this situation
 		// There's nothing stopping a client from sending this, but channels need to start with # or &
-		std::cout << "Error: Channel name must start with a # or an &" << std::endl;
+		// // std::cout << "Error: Channel name must start with a # or an &" << std::endl;
+		// // std::cout << user_input[1] << '\n';
 		return ; 
 	}
-	std::map<std::string,Channel*>::iterator it = _channels.find(user_input[2]);
+	std::map<std::string,Channel*>::iterator it = _channels.find(user_input[1]);
 	if (it == _channels.end())
-		_createChannel(user_input[2]);
-	Channel *channelptr = _channels.find(user_input[2])->second;
+		_createChannel(user_input[1]);
+	Channel *channelptr = _channels.find(user_input[1])->second;
 	channelptr->JoinChannel(_clients[sender_fd]);
 }
 
-//[2] = channel names
-//[3] = reason
+//[1] = channel names
+//[2] = reason
 void	Server::PART(const int &sender_fd)
 {	
 	Client*						client = _clients[sender_fd];
 	std::vector<std::string>	user_input = _splitString(client->getMessage());
-	if (user_input[2].empty())
+	if (user_input[1].empty())
 	{
 		std::string toSend = ":ircserv 461 ";
 		toSend.append(client->getNickname());
@@ -56,12 +57,12 @@ void	Server::PART(const int &sender_fd)
 		send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string> target_channels = getTargets(user_input[2]);
-	for (int i = 0; i < target_channels.size(); i++)
+	std::vector<std::string> target_channels = getTargets(user_input[1]);
+	for (size_t i = 0; i < target_channels.size(); i++)
 	{
 		std::map<std::string,Channel*>::iterator it = _channels.find(target_channels[i]);
 		if (it != _channels.end())
-			it->second->LeaveChannel(client, user_input[3]);
+			it->second->LeaveChannel(client, user_input[2]);
 		else
 		{
 			std::string toSend = ":ircserv 403 ";
@@ -109,8 +110,9 @@ void	Server::TOPIC(const int& sender_fd)
 	Client*						client = _clients[sender_fd];
 	std::vector<std::string>	args = _splitString(client->getMessage());
 	std::string toSend = ":";
-	if (args.size() < 3)
+	if (args.size() < 2)
 	{
+		std::cout << "Not enoug params\n";
 		toSend.append("ircserv 461 ");
 		toSend.append(client->getNickname());
 		toSend.append(" TOPIC :Not enough parameters\r\n");
@@ -120,29 +122,31 @@ void	Server::TOPIC(const int& sender_fd)
 	Channel*	channel;
 	try
 	{
-		channel = _channels.at(args[2]);
+		channel = _channels.at(args[1]);
 	}
 	catch(const std::exception& e)
 	{
 		toSend.append("ircserv 403 ");
 		toSend.append(client->getNickname());
 		toSend.push_back(' ');
-		toSend.append(args[2]);
+		toSend.append(args[1]);
 		toSend.append(" :No such channel\r\n");
 		send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return;
 	}
+	std::cout << "Channel get\n";
 	if (!channel->ClientIsInChannel(client))
 	{
 		toSend.append("ircserv 442 ");
 		toSend.append(client->getNickname());
 		toSend.push_back(' ');
-		toSend.append(args[2]);
+		toSend.append(args[1]);
 		toSend.append(" :You're not on that channel\r\n");
 		send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return;
 	}
-	if (args.size() == 3)
+	std::cout << "Client in channel\n";
+	if (args.size() == 2)
 	{
 		std::string topic = channel->GetTopic();
 		if (topic.empty())
@@ -151,17 +155,18 @@ void	Server::TOPIC(const int& sender_fd)
 			toSend.append("ircserv 332 ");
 		toSend.append(client->getNickname());
 		toSend.push_back(' ');
-		toSend.append(args[2]);
+		toSend.append(args[1]);
 		toSend.append(" :");
 		toSend.append(topic);
 		toSend.append("\r\n");
 		send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return;
 	}
+	std::cout << "Begin changing topic\n";
 	//	IDK if I even want channel operators
 	//	if (!channel->IsChannelOperator(client))
 	//		{ return "fuk off"; }
-	channel->ChangeTopic(client, args[3]);
+	channel->ChangeTopic(client, args[2]);
 }
 
 void	Server::LIST(const int &sender_fd)
@@ -183,9 +188,9 @@ void	Server::LIST(const int &sender_fd)
 	toSend.append(" Channel :Users Topic\r\n");
 	send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 	std::vector<std::string> targetChannels;
-	if (user_input.size() > 2)
+	if (user_input.size() > 1)
 	{
-		targetChannels = getTargets(user_input[2]);
+		targetChannels = getTargets(user_input[1]);
 	}
 	else
 	{
@@ -193,7 +198,7 @@ void	Server::LIST(const int &sender_fd)
 			targetChannels.push_back(it->second->GetName());
 	}
 	Channel* channel;
-	for (int i = 0; i < targetChannels.size(); i++)
+	for (size_t i = 0; i < targetChannels.size(); i++)
 	{
 		try
 		{
@@ -229,5 +234,5 @@ void	Server::LIST(const int &sender_fd)
 
 void	Server::KICK(const int& sender_fd)
 {
-
+	(void)sender_fd;
 }

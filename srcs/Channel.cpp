@@ -56,7 +56,7 @@ void	Channel::SendNames(Client* sendTo)
 	toSend.append(" = ");
 	toSend.append(_name);
 	toSend.append(" :");
-	for (int i = 0; i < _clients.size(); i++)
+	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		toSend.append(_clients[i]->getNickname());
 		if (i < _clients.size() - 1)
@@ -114,6 +114,7 @@ int Channel::LeaveChannel(Client* toLeave, std::string reason)
 	toSend.append("\r\n");
 	for (size_t i = 0; i < _clients.size(); i++)
 		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	return 0;
 }
 
 void	Channel::SendMessage(Client* sender, std::string message)
@@ -180,6 +181,7 @@ int	Channel::KickClient(Client* kicker, Client* toKick, std::string reason)
 	std::vector<Channel*>::iterator it2;
 	for (it2 = toKick->joined_channels.begin(); *it2 != this; it2++) ;
 	toKick->joined_channels.erase(it2);
+	return 0;
 }
 
 int	Channel::ChangeTopic(Client* changer, std::string newTopic)
@@ -195,6 +197,7 @@ int	Channel::ChangeTopic(Client* changer, std::string newTopic)
 	toSend.append("\r\n");
 	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
 		send((*it)->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	return 0;
 }
 
 std::string	Channel::GetTopic()
@@ -214,7 +217,7 @@ size_t Channel::GetClientCount()
 
 bool Channel::ClientIsInChannel(Client* client)
 {
-	for (int i = 0; i < _clients.size(); i++)
+	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i] == client)
 			return true;

@@ -172,6 +172,8 @@ void	Server::NICK(const int &sender_fd)
 		client->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
+	else
+		std::cout << "Welcome already sent to client " << sender_fd << '\n';
 }
 
 void	Server::USER(const int &sender_fd)
@@ -212,6 +214,8 @@ void	Server::USER(const int &sender_fd)
 		this->_clients[sender_fd]->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
+	else
+		std::cout << "Welcome already sent to client " << sender_fd << '\n';
 }
 
 void	Server::QUIT(const int &sender_fd)

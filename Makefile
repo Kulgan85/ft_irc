@@ -4,7 +4,10 @@ SRC_FILES		=	main.cpp \
 					commands.cpp \
 					PrivMsg.cpp \
 					SHA1.cpp \
-					PingPong.cpp
+					PingPong.cpp \
+					Channel.cpp \
+					ChannelCommands.cpp \
+					Utils.cpp
 
 SRC_DIR			=	srcs/
 
