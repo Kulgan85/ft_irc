@@ -46,49 +46,50 @@ void	Server::PASS(const int &sender_fd)
 void	Server::OPER(const int &sender_fd)
 {
 	std::string	to_send;
-	if (this->_clients[sender_fd]->getIsRegistered() == false)
+	Client*		client = _clients[sender_fd];
+	if (client->getIsRegistered() == false)
 	{
 		to_send = ":ircserv 451 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" :You have not registered\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	if (this->_clients[sender_fd]->getIsOperator() == true)
+	if (client->getIsOperator() == true)
 	{
 		to_send = ":ircserv 300 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" :You are already an operator\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(client->getMessage());
 	if (args.empty() == true)
 		return ;
 	if (args.size() < 3)
 	{
 		to_send = ":ircserv 461 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" ");
 		to_send.append(args[0]);
 		to_send.append(" :Not enough parameters\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	if (args[1] != this->_clients[sender_fd]->getNickname())
+	if (args[1] != client->getNickname())
 		return ;
 	if (args[2] == this->_oper_password)
 	{
-		this->_clients[sender_fd]->setIsOperator(true);
+		client->setIsOperator(true);
 		to_send = ":ircserv 381 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" :You are now an IRC operator\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		to_send.clear();
 		to_send = ":ircserv 221 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" +");
-		if (this->_clients[sender_fd]->getIsOperator() == true)
+		if (client->getIsOperator() == true)
 			to_send.push_back('o');
 		to_send.append("\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
@@ -97,7 +98,7 @@ void	Server::OPER(const int &sender_fd)
 	else
 	{
 		to_send = ":ircserv 464 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" :Password incorrect\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
@@ -107,21 +108,22 @@ void	Server::OPER(const int &sender_fd)
 void	Server::NICK(const int &sender_fd)
 {
 	std::string	to_send;
-	if (this->_clients[sender_fd]->getIsVerified() == false)
+	Client*		client = _clients[sender_fd];
+	if (client->getIsVerified() == false)
 	{
 		to_send = ":ircserv 451 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" :You have not input the password\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::vector<std::string>	args = _splitString(this->_clients[sender_fd]->getMessage());
+	std::vector<std::string>	args = _splitString(client->getMessage());
 	if (args.empty() == true)
 		return ;
 	if (args.size() < 2)
 	{
 		to_send = ":ircserv 431 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" :No nickname given\r\n");
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
@@ -129,7 +131,7 @@ void	Server::NICK(const int &sender_fd)
 	if (!Server::_isValidNick(args[1]))
 	{
 		to_send = ":ircserv 432 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" ");
 		to_send.append(args[1]);
 		to_send.append(" :Erroneous nickname\r\n");
@@ -139,7 +141,7 @@ void	Server::NICK(const int &sender_fd)
 	if (std::find(this->_nicknames.begin(), this->_nicknames.end(), args[1]) != this->_nicknames.end())
 	{
 		to_send = ":ircserv 433 ";
-		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(client->getNickname());
 		to_send.append(" ");
 		to_send.append(args[1]);
 		to_send.append(" :Nickname is already in use\r\n");
@@ -147,10 +149,10 @@ void	Server::NICK(const int &sender_fd)
 		return ;
 	}
 	to_send = ":";
-	if (find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[sender_fd]->getNickname()) != this->_nicknames.end())
-		this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[sender_fd]->getNickname()));
-	to_send.append(this->_clients[sender_fd]->getNickname());
-	this->_clients[sender_fd]->setNickname(args[1]);
+	if (find(this->_nicknames.begin(), this->_nicknames.end(), client->getNickname()) != this->_nicknames.end())
+		this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), client->getNickname()));
+	to_send.append(client->getNickname());
+	client->setNickname(args[1]);
 	this->_nicknames.push_back(args[1]);
 	to_send.append(" NICK ");
 	to_send.append(args[1]);
@@ -165,9 +167,9 @@ void	Server::NICK(const int &sender_fd)
 	to_send.append(args[1]);
 	to_send.append("\r\n");
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
-	if (this->_clients[sender_fd]->getUsername().size() > 0 && this->_clients[sender_fd]->getIsRegistered() == false)
+	if (client->getUsername().size() > 0 && client->getIsRegistered() == false)
 	{
-		this->_clients[sender_fd]->setIsRegistered(true);
+		client->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
 }
