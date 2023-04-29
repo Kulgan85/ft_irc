@@ -19,8 +19,12 @@ int	Channel::JoinChannel(Client* toJoin)
 	std::string toSend;
 	if (ClientIsInChannel(toJoin))
 	{
-		//TODO: What the fuck do we do in this situation?
-		std::cerr << "Client already joined";
+		toSend = ":ircserv 443 ";
+		toSend.append(toJoin->getNickname());
+		toSend.push_back(' ');
+		toSend.append(this->_name);
+		toSend.append(" :is already on channel\r\n");
+		send(toJoin->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return 1;
 	}
 	_clients.push_back(toJoin);
@@ -44,8 +48,12 @@ int	Channel::JoinChannel(Client* toJoin)
 	toSend.append(" JOIN ");
 	toSend.append(_name);
 	toSend.append("\r\n");
-	for (size_t i = 0; i < _clients.size() - 1; i++)
+	for (size_t i = 0; i < _clients.size(); i++)
+	{
+		if (_clients[i] == toJoin)
+			continue ;
 		send(_clients[i]->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	}
 	return 0;
 }
 
@@ -53,7 +61,7 @@ void	Channel::SendNames(Client* sendTo)
 {
 	std::string toSend = ":ircserv 353 ";
 	toSend.append(sendTo->getNickname());
-	toSend.append(" = ");
+	toSend.append(" @ ");
 	toSend.append(_name);
 	toSend.append(" :");
 	for (size_t i = 0; i < _clients.size(); i++)
@@ -70,6 +78,20 @@ void	Channel::SendNames(Client* sendTo)
 	toSend.append(_name);
 	toSend.append(" :End of NAMES List\r\n");
 	send(sendTo->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+}
+
+void	Channel::RemoveClient(Client* toRemove)
+{
+	if (!ClientIsInChannel(toRemove))
+		return ;
+	{
+		std::vector<Client*>::iterator it;
+		for (it = _clients.begin(); *it != toRemove; it++) ;
+		_clients.erase(it);
+		std::vector<Channel*>::iterator it2;
+		for (it2 = toRemove->joined_channels.begin(); *it2 != this; it2++) ;
+		toRemove->joined_channels.erase(it2);
+	}
 }
 
 int Channel::LeaveChannel(Client* toLeave, std::string reason)
@@ -93,7 +115,9 @@ int Channel::LeaveChannel(Client* toLeave, std::string reason)
 		for (it2 = toLeave->joined_channels.begin(); *it2 != this; it2++) ;
 		toLeave->joined_channels.erase(it2);
 	}
-	toSend = ":ircserv PART ";
+	toSend = ":";
+	toSend.append(toLeave->getNickname());
+	toSend.append(" PART ");
 	toSend.append(_name);
 	if (!reason.empty())
 	{
@@ -142,6 +166,25 @@ void	Channel::SendMessage(Client* sender, std::string message)
 			continue;
 		send((*it)->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 	}
+}
+
+void	Channel::KickAll()
+{
+	std::string toSend;
+	if (this->GetClientCount() < 1)
+		return ;
+	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		Client*	toKick = *it;
+		toSend = ":ircserv KICK ";
+		toSend.append(_name);
+		toSend.push_back(' ');
+		toSend.append(toKick->getNickname());
+		toSend.append(" :You have been kicked");
+		toSend.append("\r\n");
+		send(toKick->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+	}
+	_clients.clear();
 }
 
 int	Channel::KickClient(Client* kicker, Client* toKick, std::string reason)

@@ -13,6 +13,7 @@ class Client;
 # include <sstream>
 # include <cstring>
 # include <ctime>
+# include <csignal>
 # include <poll.h>
 # include <sys/socket.h>
 # include <sys/types.h>
@@ -48,9 +49,12 @@ class Server
 		void	_runCommands(int sender_fd);
 		bool	_isValidNick(std::string str);
 		void	_createChannel(std::string name);
+		void	_destroyEmptyChannels(void);
 		void	_destroyChannel(std::string name);
 		void	_destroyChannel(Channel* channel);
 		void	_sendMessage(int sender_fd, bool silent = false);
+
+		static void	_shutdown(int signum);
 
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);

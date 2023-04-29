@@ -23,6 +23,9 @@ void	Server::_removeClient(int client_fd)
 {
 	if (find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[client_fd]->getNickname()) != this->_nicknames.end())
 		this->_nicknames.erase(find(this->_nicknames.begin(), this->_nicknames.end(), this->_clients[client_fd]->getNickname()));
+	for (std::map<std::string, Channel*>::iterator it = this->_channels.begin(); it != this->_channels.end(); it++)
+		it->second->RemoveClient(this->_clients[client_fd]);
+	_destroyEmptyChannels();
 	delete this->_clients[client_fd];
 	this->_clients.erase(client_fd);
 }
@@ -45,7 +48,6 @@ void	Server::_newClient(void)
 		Server::_addClient(new Client(new_fd));
 		std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
 		this->_clients[new_fd]->setIPAddress(inet_ntoa((((struct sockaddr_in*)&addr)->sin_addr)));
-		send(new_fd, "*Welcome to ircserv. You must input a password before setting your username and nickname*\r\n", 92, MSG_DONTWAIT);
 	}
 }
 
@@ -118,21 +120,13 @@ void	Server::_useMessage(int sender_fd)
 	if (message.at(message.length() - 2) != '\r')
 		std::cerr << "Error: Missing carriage return" << std::endl;
 	Server::_runCommands(sender_fd);
-/*	message.erase(message.length() - 1);
-	for (std::vector<std::string>::iterator it = this->_clients[sender_fd]->joined_channels.begin(); it != this->_clients[sender_fd]->joined_channels.end(); it++)
-	{
-		for (std::vector<int>::iterator v_it = this->_channels.at(*it).begin(); v_it != this->_channels.at(*it).end(); v_it++)
-		{
-			send(*v_it, message.c_str(), message.size(), MSG_DONTWAIT);
-		}
-	}*/
 }
 
 void	Server::_sendWelcome(int sender_fd)
 {
 	std::string	to_send;
 
-	std::cout << "Sending welcome\n";
+	std::cout << "Sending welcome to " << sender_fd << std::endl;
 	to_send = ":";
 	to_send.append(this->_name);
 	to_send.append(" 001 ");
@@ -262,6 +256,9 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_pfds[0].fd = this->_socket_fd;
 	this->_pfds[0].events = POLLIN;
 	this->_pfd_count = 1;
+
+	std::signal(SIGINT, Server::_shutdown);
+
 	this->_commands["PASS"] = &Server::PASS;
 	this->_commands["NICK"] = &Server::NICK;
 	this->_commands["USER"] = &Server::USER;
@@ -297,8 +294,22 @@ Server::~Server()
 {
 	delete [] this->_pfds;
 	for (std::map<int, Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
+	{
 		delete it->second;
+	}
 	this->_clients.clear();
+
+	for (std::map<std::string, Channel*>::iterator it = this->_channels.begin(); it != this->_channels.end(); it++)
+		delete it->second;
+	this->_channels.clear();
+
+	std::cout << "Server has shutdown" << std::endl;
+}
+
+void	Server::_shutdown(int signum)
+{
+	(void)signum;
+	throw (SHUTDOWN_EXCEPTION());
 }
 
 void	Server::launch()
@@ -327,20 +338,42 @@ void	Server::_createChannel(std::string name)
 	_channels.insert(std::make_pair(name, newChan));
 }
 
+void	Server::_destroyEmptyChannels(void)
+{
+	std::map<std::string, Channel*>::iterator it = _channels.begin();
+	while (it != _channels.end())
+	{
+		if (it->second->GetClientCount() < 1)
+		{
+			_destroyChannel(it->second->GetName());
+			it = _channels.begin();
+			continue ;
+		}
+		it++;
+	}
+}
+
 void	Server::_destroyChannel(std::string name)
 {
-	Channel* chanPtr = _channels.find(name)->second;
-	_destroyChannel(chanPtr);
+	std::map<std::string, Channel*>::iterator map_iter = _channels.find(name);
+	if (map_iter == _channels.end())
+		std::cerr << "Trying to destroy non-existent channel\n"; 
+	else
+	{
+		map_iter->second->KickAll();
+		delete map_iter->second;
+		_channels.erase(map_iter);
+	}
 }
 
 void	Server::_destroyChannel(Channel* channel)
 {
-	(void)channel;
+	this->_destroyChannel(channel->GetName());
 	// Should a channel be able to be destroyed if there are clients connected? 
 	// Yes, an IRC server is technically able to destroy a channel even if there are users in it. 
 
 	// When does a channel even get destroyed? Theres no command to. Is this only when the server closes?
-	// When server closes but also if a user wants to
+	// When server closes but also if a user wants to, or when all users leave a channel
 
 	// Should this function even exist?
 	// I believe so

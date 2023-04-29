@@ -23,4 +23,9 @@ class	POLL_EXCEPTION : public std::exception
 	virtual const char *what() const throw() {return ("Error: poll()");}
 };
 
+class	SHUTDOWN_EXCEPTION : public std::exception
+{
+	virtual const char *what() const throw() {return ("Error: poll()");}
+};
+
 #endif

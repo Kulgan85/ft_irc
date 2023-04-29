@@ -172,7 +172,7 @@ void	Server::NICK(const int &sender_fd)
 		client->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
-	else
+	else if (this->_clients[sender_fd]->getIsRegistered() == true)
 		std::cout << "Welcome already sent to client " << sender_fd << '\n';
 }
 
@@ -214,7 +214,7 @@ void	Server::USER(const int &sender_fd)
 		this->_clients[sender_fd]->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
-	else
+	else if (this->_clients[sender_fd]->getIsRegistered() == true)
 		std::cout << "Welcome already sent to client " << sender_fd << '\n';
 }
 
@@ -280,12 +280,20 @@ void	Server::KILL(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
+	if (args[1] == this->_clients[sender_fd]->getNickname())
+	{
+		to_send = ":ircserv 483 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You cannot KILL yourself\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
 	for (std::map<int, Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++)
 	{
 		if (it->second->getNickname() == args[1])
 		{
 			std::string	kill_message = ":";
-			kill_message.append(this->_name);
+			kill_message.append(this->_clients[sender_fd]->getNickname());
 			kill_message.append(" KILL ");
 			kill_message.append(args[1]);
 			kill_message.append(" :");

@@ -12,9 +12,14 @@ int	main(int argc, char **argv)
 	{
 		irc.launch();
 	}
+	catch(const SHUTDOWN_EXCEPTION& e)
+	{
+		(void)e;
+		return (0);
+	}
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-	
+	return (0);
 }

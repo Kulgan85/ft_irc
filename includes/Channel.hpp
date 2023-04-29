@@ -12,9 +12,11 @@ class Channel
 	int		LeaveChannel(Client* toLeave, std::string reason);
 	void	SendMessage(Client* sender, std::string message);
 	int		KickClient(Client* kicker, Client* toKick, std::string reason);
+	void	RemoveClient(Client* toRemove);
 	int		ChangeTopic(Client* changer, std::string newTopic);
 	bool	ClientIsInChannel(Client* client);
 	void	SendNames(Client* sendTo);
+	void	KickAll();
 
 	std::string	GetTopic();
 	std::string	GetName();
