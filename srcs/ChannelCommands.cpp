@@ -54,6 +54,16 @@ void	Server::PART(const int &sender_fd)
 {	
 	Client*						client = _clients[sender_fd];
 	std::vector<std::string>	user_input = _splitString(client->getMessage());
+
+	if (!client->getIsRegistered())
+	{
+		std::string toSend = ":";
+		toSend.append("ircserv 451 ");
+		toSend.append(client->getNickname());
+		toSend.append(" :You have not registered\r\n");
+		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return;
+	}
 	if (user_input.size() < 2)
 	{
 		std::string toSend = ":ircserv 461 ";
@@ -92,6 +102,14 @@ void	Server::NAMES(const int& sender_fd)
 	std::vector<std::string>	args = _splitString(client->getMessage());
 	std::string toSend = ":";
 
+	if (!client->getIsRegistered())
+	{
+		toSend.append("ircserv 451 ");
+		toSend.append(client->getNickname());
+		toSend.append(" :You have not registered\r\n");
+		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return;
+	}
 	if (args.size() < 2)
 	{
 		toSend = ":ircserv 461 ";
@@ -129,6 +147,15 @@ void	Server::TOPIC(const int& sender_fd)
 	Client*						client = _clients[sender_fd];
 	std::vector<std::string>	args = _splitString(client->getMessage());
 	std::string toSend = ":";
+
+	if (!client->getIsRegistered())
+	{
+		toSend.append("ircserv 451 ");
+		toSend.append(client->getNickname());
+		toSend.append(" :You have not registered\r\n");
+		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return;
+	}
 	if (args.size() < 2)
 	{
 		std::cout << "Not enoug params\n";
@@ -191,7 +218,7 @@ void	Server::LIST(const int &sender_fd)
 	std::vector<std::string>	user_input = _splitString(client->getMessage());
 	std::string 				toSend = ":";
 
-	if (!client->getIsVerified())
+	if (!client->getIsRegistered())
 	{
 		toSend.append("ircserv 451 ");
 		toSend.append(client->getNickname());
