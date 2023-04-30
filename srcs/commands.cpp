@@ -77,7 +77,13 @@ void	Server::OPER(const int &sender_fd)
 		return ;
 	}
 	if (args[1] != client->getNickname())
+	{
+		to_send = ":ircserv 491 ";
+		to_send.append(client->getNickname());
+		to_send.append(" :Invalid nickname, you must use your own\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
+	}
 	if (args[2] == this->_oper_password)
 	{
 		client->setIsOperator(true);
