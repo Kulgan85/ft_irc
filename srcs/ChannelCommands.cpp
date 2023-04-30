@@ -114,35 +114,64 @@ void	Server::NAMES(const int& sender_fd)
 		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		return;
 	}
-	if (args.size() < 2)
+	if (args.size() > 1)
 	{
-		toSend = ":ircserv 461 ";
-		toSend.append(client->getNickname());
-		toSend.append(" ");
-		toSend.append(args[0]);
-		toSend.append(" :Not enough parameters\r\n");
-		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
-		return ;
-	}
-	std::vector<std::string>	targets = getTargets(args[1]);
-	for (size_t i = 0; i < targets.size(); i++)
-	{
-		Channel* channel;
-		try
+		std::vector<std::string>	targets = getTargets(args[1]);
+		for (size_t i = 0; i < targets.size(); i++)
 		{
-			channel = _channels.at(targets[i]);
+			Channel* channel;
+			try
+			{
+				channel = _channels.at(targets[i]);
+			}
+			catch(const std::exception& e)
+			{
+				toSend = ":ircserv 366 ";
+				toSend.append(client->getNickname());
+				toSend.push_back(' ');
+				toSend.append(targets[i]);
+				toSend.append(" :End of NAMES list\r\n");
+				send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+				continue;
+			}
+			channel->SendNames(client);
 		}
-		catch(const std::exception& e)
+	}
+	else
+	{
+		for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
 		{
+			it->second->SendNames(client);
+		}
+		toSend = ":ircserv 353 ";
+		toSend.append(client->getNickname());
+		toSend.append(" @ * :");
+		bool	atStart = true;
+		for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
+		{
+			if (it->second->joined_channels.size() == 0)
+			{
+				if (atStart == false)
+				{
+					toSend.push_back(' ');
+				}
+				toSend.append(it->second->getNickname());
+				atStart = false;
+			}
+		}
+		if (toSend[toSend.size() - 1] == ':')
+			return ;
+		else
+		{
+			toSend.append("\r\n");
+			send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 			toSend = ":ircserv 366 ";
 			toSend.append(client->getNickname());
 			toSend.push_back(' ');
-			toSend.append(targets[i]);
+			toSend.push_back('*');
 			toSend.append(" :End of NAMES list\r\n");
 			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
-			continue;
 		}
-		channel->SendNames(client);
 	}
 }
 
