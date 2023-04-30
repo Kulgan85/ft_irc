@@ -36,7 +36,7 @@ void	Server::JOIN(const int &sender_fd)
 	{
 		if (target_channels[i][0] != '#' && target_channels[i][0] != '&')
 		{
-			toSend.append("ircserv 403 ");
+			toSend = ":ircserv 403 ";
 			toSend.append(client->getNickname());
 			toSend.push_back(' ');
 			toSend.append(user_input[2]);
