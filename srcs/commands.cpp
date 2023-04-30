@@ -307,6 +307,7 @@ void	Server::KILL(const int &sender_fd)
 			kill_message.append(args[1]);
 			kill_message.append(" :");
 			kill_message.append(args[2]);
+			kill_message.append("\r\n");
 			for (std::map<int, Client *>::iterator it2 = this->_clients.begin(); it2 != this->_clients.end(); it2++)
 				send(it2->first, kill_message.c_str(), kill_message.size(), MSG_DONTWAIT);
 
