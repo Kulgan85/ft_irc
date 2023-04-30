@@ -31,21 +31,25 @@ void	Server::JOIN(const int &sender_fd)
 		_destroyEmptyChannels();
 		return;
 	}
-	if (user_input[1][0] != '#' && user_input[1][0] != '&')
+	std::vector<std::string> target_channels = getTargets(user_input[1]);
+	for (size_t i = 0; i < target_channels.size(); i++)
 	{
-		toSend.append("ircserv 403 ");
-		toSend.append(client->getNickname());
-		toSend.push_back(' ');
-		toSend.append(user_input[2]);
-		toSend.append(" :No such channel\r\n");
-		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
-		return ; 
+		if (target_channels[i][0] != '#' && target_channels[i][0] != '&')
+		{
+			toSend.append("ircserv 403 ");
+			toSend.append(client->getNickname());
+			toSend.push_back(' ');
+			toSend.append(user_input[2]);
+			toSend.append(" :No such channel\r\n");
+			send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+			continue ; 
+		}
+		std::map<std::string,Channel*>::iterator it = _channels.find(target_channels[i]);
+		if (it == _channels.end())
+			_createChannel(target_channels[i]);
+		Channel *channelptr = _channels.find(target_channels[i])->second;
+		channelptr->JoinChannel(_clients[sender_fd]);
 	}
-	std::map<std::string,Channel*>::iterator it = _channels.find(user_input[1]);
-	if (it == _channels.end())
-		_createChannel(user_input[1]);
-	Channel *channelptr = _channels.find(user_input[1])->second;
-	channelptr->JoinChannel(_clients[sender_fd]);
 }
 
 //[1] = channel names
@@ -276,5 +280,20 @@ void	Server::LIST(const int &sender_fd)
 
 void	Server::KICK(const int& sender_fd)
 {
-	(void)sender_fd;
+	Client*						client = _clients[sender_fd];
+	std::vector<std::string>	user_input = _splitString(client->getMessage());
+	std::string 				toSend = ":";
+
+	if (!client->getIsRegistered())
+	{
+		toSend.append("ircserv 451 ");
+		toSend.append(client->getNickname());
+		toSend.append(" :You have not registered\r\n");
+		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		return;
+	}
+	toSend.append("ircserv 482 ");
+	toSend.append(client->getNickname());
+	toSend.append(" :You're not channel operator\r\n");
+	send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 }
