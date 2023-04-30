@@ -158,7 +158,6 @@ void	Server::TOPIC(const int& sender_fd)
 	}
 	if (args.size() < 2)
 	{
-		std::cout << "Not enoug params\n";
 		toSend.append("ircserv 461 ");
 		toSend.append(client->getNickname());
 		toSend.append(" TOPIC :Not enough parameters\r\n");

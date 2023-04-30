@@ -262,12 +262,12 @@ void	Server::KILL(const int &sender_fd)
 {
 	std::string	to_send;
 
-	if (!client->getIsRegistered())
+	if (!this->_clients[sender_fd]->getIsRegistered())
 	{
-		toSend = ":ircserv 451 ";
-		toSend.append(this->_clients[sender_fd->getNickname());
-		toSend.append(" :You have not registered\r\n");
-		send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		to_send = ":ircserv 451 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You have not registered\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return;
 	}
 	if (this->_clients[sender_fd]->getIsOperator() == false)
