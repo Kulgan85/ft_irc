@@ -99,13 +99,13 @@ void	Server::_runCommands(int sender_fd)
 
 bool	Server::_isValidNick(std::string str)
 {
-	if (str.size() > 9)
+	if (str.size() > 9 || str.empty())
+		return (false);
+	if (str[0] < 0x41 || str[0] > 0x7D)
 		return (false);
 	for (std::string::size_type i = 0; i < str.size(); i++)
 	{
-		if (isalnum(str[i]))
-			continue ;
-		if (str[i] == '-' || str[i] == '_')
+		if ((str[i] >= 0x41 && str[i] <= 0x7D) || str[i] == '-' || (str[i] >= 0x30 && str[i] <= 0x39))
 			continue ;
 		return (false);
 	}
