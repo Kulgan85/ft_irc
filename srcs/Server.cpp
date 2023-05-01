@@ -193,7 +193,7 @@ void	Server::_clientInput(int pfds_index)
 		this->_clients[sender_fd]->addToMessage(message);
 		if (this->_clients[sender_fd]->getMessage().at(this->_clients[sender_fd]->getMessage().length() - 1) != '\n')
 			return ;
-		if (!(message.compare("\r\n") == 0 || message.compare("\n") == 0))
+		if (!(this->_clients[sender_fd]->getMessage().compare("\r\n") == 0 || this->_clients[sender_fd]->getMessage().compare("\n") == 0))
 			Server::_useMessage(sender_fd);
 		try
 		{
