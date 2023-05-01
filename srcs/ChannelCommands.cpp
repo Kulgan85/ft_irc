@@ -39,7 +39,7 @@ void	Server::JOIN(const int &sender_fd)
 			toSend = ":ircserv 403 ";
 			toSend.append(client->getNickname());
 			toSend.push_back(' ');
-			toSend.append(user_input[2]);
+			toSend.append(target_channels[i]);
 			toSend.append(" :No such channel\r\n");
 			send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 			continue ; 
@@ -167,9 +167,7 @@ void	Server::NAMES(const int& sender_fd)
 			send(sender_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 			toSend = ":ircserv 366 ";
 			toSend.append(client->getNickname());
-			toSend.push_back(' ');
-			toSend.push_back('*');
-			toSend.append(" :End of NAMES list\r\n");
+			toSend.append(" * :End of NAMES list\r\n");
 			send(client->getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT);
 		}
 	}
