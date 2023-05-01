@@ -333,3 +333,31 @@ void	Server::KILL(const int &sender_fd)
 	to_send.append(" :No such nick\r\n");
 	send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 }
+
+void	Server::DIE(const int &sender_fd)
+{
+	std::string	to_send;
+
+	if (!this->_clients[sender_fd]->getIsRegistered())
+	{
+		to_send = ":ircserv 451 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :You have not registered\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return;
+	}
+	if (this->_clients[sender_fd]->getIsOperator() == false)
+	{
+		to_send = ":ircserv 481 ";
+		to_send.append(this->_clients[sender_fd]->getNickname());
+		to_send.append(" :Permission Denied- You're not an IRC operator\r\n");
+		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
+		return ;
+	}
+	std::string	kill_message = ":ircserv DIE :";
+	kill_message.append(this->_clients[sender_fd]->getNickname());
+	kill_message.append(" has told the server to DIE\r\n");
+	for (std::map<int, Client *>::iterator it2 = this->_clients.begin(); it2 != this->_clients.end(); it2++)
+		send(it2->first, kill_message.c_str(), kill_message.size(), MSG_DONTWAIT);
+	throw (SHUTDOWN_EXCEPTION());
+}

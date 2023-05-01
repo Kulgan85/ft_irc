@@ -54,8 +54,6 @@ class Server
 		void	_destroyChannel(Channel* channel);
 		void	_sendMessage(int sender_fd, bool silent = false);
 
-		static void	_shutdown(int signum);
-
 		void	PASS(const int &sender_fd);
 		void	NICK(const int &sender_fd);
 		void	USER(const int &sender_fd);
@@ -70,6 +68,7 @@ class Server
 		void	OPER(const int &sender_fd);
 		void	QUIT(const int &sender_fd);
 		void	KILL(const int &sender_fd);
+		void	DIE(const int &sender_fd);
 		void	PING(const int &sender_fd);
 		void	PONG(const int &sender_fd);
 

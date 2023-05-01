@@ -124,7 +124,7 @@ void	Server::NAMES(const int& sender_fd)
 			{
 				channel = _channels.at(targets[i]);
 			}
-			catch(const std::exception& e)
+			catch(const std::out_of_range& e)
 			{
 				toSend = ":ircserv 366 ";
 				toSend.append(client->getNickname());
@@ -202,7 +202,7 @@ void	Server::TOPIC(const int& sender_fd)
 	{
 		channel = _channels.at(args[1]);
 	}
-	catch(const std::exception& e)
+	catch(const std::out_of_range& e)
 	{
 		toSend.append("ircserv 403 ");
 		toSend.append(client->getNickname());
@@ -279,7 +279,7 @@ void	Server::LIST(const int &sender_fd)
 		{
 			channel = _channels.at(targetChannels[i]);
 		}
-		catch(const std::exception& e)
+		catch(const std::out_of_range& e)
 		{
 			continue;
 		}

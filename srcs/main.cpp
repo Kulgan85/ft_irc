@@ -7,9 +7,9 @@ int	main(int argc, char **argv)
 		std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
 		return (1);
 	}
-	Server irc(argv[1], argv[2]);
 	try
 	{
+		Server irc(argv[1], argv[2]);
 		irc.launch();
 	}
 	catch(const SHUTDOWN_EXCEPTION& e)

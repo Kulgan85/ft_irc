@@ -67,7 +67,7 @@ void	Server::_runCommands(int sender_fd)
 			{
 				(this->*_commands.at(messages[0].substr(0, messages[0].find_first_of(' '))))(sender_fd);
 			}
-			catch(const std::exception& e)
+			catch(const std::out_of_range& e)
 			{
 				std::string	to_send = ":ircserv 421 ";
 				to_send.append(this->_clients[sender_fd]->getNickname());
@@ -83,7 +83,7 @@ void	Server::_runCommands(int sender_fd)
 			{
 				(this->*_commands.at(messages[0].substr(0, messages[0].find_first_of('\n'))))(sender_fd);
 			}
-			catch(const std::exception& e)
+			catch(const std::out_of_range& e)
 			{
 				std::string	to_send = ":ircserv 421 ";
 				to_send.append(this->_clients[sender_fd]->getNickname());
@@ -199,7 +199,7 @@ void	Server::_clientInput(int pfds_index)
 		{
 			this->_clients.at(sender_fd)->clearMessage();
 		}
-		catch (const std::exception &e)
+		catch (const std::out_of_range &e)
 		{}
 	}
 }
@@ -257,8 +257,6 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_pfds[0].events = POLLIN;
 	this->_pfd_count = 1;
 
-	std::signal(SIGINT, Server::_shutdown);
-
 	this->_commands["PASS"] = &Server::PASS;
 	this->_commands["NICK"] = &Server::NICK;
 	this->_commands["USER"] = &Server::USER;
@@ -288,6 +286,7 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	//this->_commands["WHOWAS"] = &Server::WHOWAS;
 
 	this->_commands["KILL"] = &Server::KILL;
+	this->_commands["DIE"] = &Server::DIE;
 }
 
 Server::~Server()
@@ -304,12 +303,6 @@ Server::~Server()
 	this->_channels.clear();
 
 	std::cout << "Server has shutdown" << std::endl;
-}
-
-void	Server::_shutdown(int signum)
-{
-	(void)signum;
-	throw (SHUTDOWN_EXCEPTION());
 }
 
 void	Server::launch()
