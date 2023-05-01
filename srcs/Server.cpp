@@ -36,19 +36,24 @@ void	Server::_newClient(void)
 	socklen_t				addr_len;
 	int						new_fd;
 
-	if (this->_pfd_count == this->_max_pfd_count)
-		return ;
 	addr_len = sizeof(addr);
 	new_fd = accept(this->_socket_fd, (struct sockaddr *)&addr, &addr_len);
 	if (new_fd == -1)
-		std::cerr << "Error: accept()\n";
-	else
 	{
-		Server::_addToPoll(new_fd);
-		Server::_addClient(new Client(new_fd));
-		std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
-		this->_clients[new_fd]->setIPAddress(inet_ntoa((((struct sockaddr_in*)&addr)->sin_addr)));
+		std::cerr << "Error: accept()\n";
+		return ;
 	}
+	if (this->_pfd_count == this->_max_pfd_count)
+	{
+		std::string	toSend = ":ircserv 010 :Try another server, this one is full\r\n";
+		send(new_fd, toSend.c_str(), toSend.size(), MSG_DONTWAIT);
+		close(new_fd);
+		return ;
+	}
+	Server::_addToPoll(new_fd);
+	Server::_addClient(new Client(new_fd));
+	std::cout << "New connection from " << inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr) << " on socket " << new_fd << std::endl;
+	this->_clients[new_fd]->setIPAddress(inet_ntoa((((struct sockaddr_in*)&addr)->sin_addr)));
 }
 
 void	Server::_runCommands(int sender_fd)
