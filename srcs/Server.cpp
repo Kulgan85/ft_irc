@@ -130,7 +130,6 @@ void	Server::_sendWelcome(int sender_fd)
 {
 	std::string	to_send;
 
-	std::cout << "Sending welcome to " << sender_fd << std::endl;
 	to_send = ":";
 	to_send.append(this->_name);
 	to_send.append(" 001 ");
@@ -257,6 +256,7 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_socket_fd = Server::_setSocket(this->_port);
 	this->_max_pfd_count = 20;
 	this->_pfds = new struct pollfd[this->_max_pfd_count];
+	memset(this->_pfds, 0, sizeof(pollfd) * this->_max_pfd_count);
 	this->_pfds[0].fd = this->_socket_fd;
 	this->_pfds[0].events = POLLIN;
 	this->_pfd_count = 1;
