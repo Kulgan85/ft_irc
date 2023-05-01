@@ -354,7 +354,7 @@ void	Server::DIE(const int &sender_fd)
 		send(sender_fd, to_send.c_str(), to_send.size(), MSG_DONTWAIT);
 		return ;
 	}
-	std::string	kill_message = ":ircserv DIE :";
+	std::string	kill_message = ":ircserv 002 :";
 	kill_message.append(this->_clients[sender_fd]->getNickname());
 	kill_message.append(" has told the server to DIE\r\n");
 	for (std::map<int, Client *>::iterator it2 = this->_clients.begin(); it2 != this->_clients.end(); it2++)
