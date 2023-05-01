@@ -178,8 +178,6 @@ void	Server::NICK(const int &sender_fd)
 		client->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
-	else if (this->_clients[sender_fd]->getIsRegistered() == true)
-		std::cout << "Welcome already sent to client " << sender_fd << '\n';
 }
 
 void	Server::USER(const int &sender_fd)
@@ -220,8 +218,6 @@ void	Server::USER(const int &sender_fd)
 		this->_clients[sender_fd]->setIsRegistered(true);
 		Server::_sendWelcome(sender_fd);
 	}
-	else if (this->_clients[sender_fd]->getIsRegistered() == true)
-		std::cout << "Welcome already sent to client " << sender_fd << '\n';
 }
 
 void	Server::QUIT(const int &sender_fd)
@@ -252,7 +248,7 @@ void	Server::QUIT(const int &sender_fd)
 		--pfds_index;
 	if (pfds_index < 0)
 	{
-		std::cout << "ERROR: Something is very wrong" << std::endl;
+		std::cerr << "ERROR: Something is very wrong" << std::endl;
 	}
 	close(sender_fd);
 	Server::_removeFromPoll(pfds_index);

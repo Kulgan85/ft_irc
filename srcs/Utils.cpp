@@ -14,11 +14,6 @@ std::deque<std::string>	_splitMessages(std::string message)
 
 std::vector<std::string> _splitString(std::string str)
 {
-	// for (std::string::size_type i = 0; i < str.size(); i++)
-	// {
-	// 	std::cout << (int)str[i] << " ";
-	// }
-	// std::cout << std::endl;
 	if (str.at(str.length() - 1) == '\n')
 		str.erase(str.length() - 1);
 	if (str.at(str.length() - 1) == '\r')
@@ -50,7 +45,6 @@ std::vector<std::string> _splitString(std::string str)
 						;
 					else
 					{
-						std::cout << "Invalid character is |" << (int)str[i] << "|\n"; 
 						tokens.clear();
 						return (tokens);
 					}

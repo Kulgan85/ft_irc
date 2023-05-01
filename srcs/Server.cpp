@@ -61,7 +61,6 @@ void	Server::_runCommands(int sender_fd)
 	std::deque<std::string>	messages = _splitMessages(this->_clients.at(sender_fd)->getMessage());
 	while (messages.size() > 0)
 	{
-		std::cout << "message is |" << messages[0] << "|\n";
 		this->_clients[sender_fd]->clearMessage();
 		this->_clients[sender_fd]->addToMessage(messages[0]);
 		if (messages[0].find_first_of('\r') != std::string::npos)
@@ -269,27 +268,14 @@ Server::Server(std::string port, std::string password) : _name("ircserv"), _port
 	this->_commands["PONG"] = &Server::PONG;
 	this->_commands["OPER"] = &Server::OPER;
 	this->_commands["QUIT"] = &Server::QUIT;
-	//this->_commands["ERROR"] = &Server::ERROR;
-
 	this->_commands["JOIN"] = &Server::JOIN;
 	this->_commands["PART"] = &Server::PART;
 	this->_commands["TOPIC"] = &Server::TOPIC;
 	this->_commands["NAMES"] = &Server::NAMES;
 	this->_commands["LIST"] = &Server::LIST;
 	this->_commands["KICK"] = &Server::KICK;
-
-	//this->_commands["MOTD"] = &Server::MOTD;
-	//this->_commands["HELP"] = &Server::HELP;
-	//this->_commands["INFO"] = &Server::INFO;
-	//this->_commands["MODE"] = &Server::MODE;
-
 	this->_commands["PRIVMSG"] = &Server::PMSG;
 	this->_commands["NOTICE"] = &Server::NOTICE;
-
-	//this->_commands["WHO"] = &Server::WHO;
-	//this->_commands["WHOIS"] = &Server::WHOIS;
-	//this->_commands["WHOWAS"] = &Server::WHOWAS;
-
 	this->_commands["KILL"] = &Server::KILL;
 	this->_commands["DIE"] = &Server::DIE;
 }

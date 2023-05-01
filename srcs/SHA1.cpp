@@ -12,8 +12,6 @@ std::bitset<160>	SHA1Hash(std::string message)
 	unsigned long h4 = 0xc3d2e1f0;
 	unsigned long long messageLength = message.length() * 8UL * sizeof(char);
 
-	//std::cout << "Message length: " << messageLength << '\n';
-
 	std::vector<unsigned char> byteArray = std::vector<unsigned char>(message.length());
 	byteArray.assign(message.begin(), message.end());
 
@@ -21,15 +19,9 @@ std::bitset<160>	SHA1Hash(std::string message)
 	int padding = (64 - (byteArray.size() % 64)) - 8;
 	if (padding < 0)
 		padding = 64 + padding;
-	//std::cout << "Determined padding to be " << padding << '\n';
 	byteArray.insert(byteArray.end(), padding, 0);
 	for (int i = 56; i >= 0; i -= 8)
 	byteArray.push_back((char)(messageLength >> i));
-	// std::cout << "Created byte array that is " << byteArray.size() << " bytes large\n";
-	// std::cout << "Final 8 bits of message = ";
-	// for (int i = 9; i > 0; i--)
-	// 		std::cout << ((int)byteArray[byteArray.size() - i]) << ", ";
-	// std::cout << '\n';
 
 	while (!byteArray.empty())
 	{
@@ -44,12 +36,6 @@ std::bitset<160>	SHA1Hash(std::string message)
 			words[i] |= (byteArray[i * 4 + 2] << 8);
 			words[i] |= (byteArray[i * 4 + 3]);
 		}
-		// std::cout << "512 bit sequence: ";
-		// for (i = 0; i < 16; i++)
-		// {
-		// 	std::cout << words[i] << ", ";
-		// }
-		// std::cout << '\n';
 		for (i = 16; i < 80; i++)
 		{
 			words[i] = LeftShift(1, words[i - 3] ^ words[i - 8] ^ words[i - 14] ^ words[i - 16]);
